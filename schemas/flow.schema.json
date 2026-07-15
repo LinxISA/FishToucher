@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linx-isa.github.io/FishToucher/schemas/flow.schema.json",
+  "title": "FishToucher Flow",
+  "type": "object",
+  "required": [
+    "standard",
+    "project",
+    "human_authority",
+    "model_pools",
+    "roles",
+    "gates",
+    "loops",
+    "anti_cheat"
+  ],
+  "properties": {
+    "standard": {"const": "fishtoucher.dev/v1alpha1"},
+    "project": {"type": "object"},
+    "human_authority": {"type": "object"},
+    "model_pools": {"type": "array", "minItems": 2},
+    "roles": {"type": "array", "minItems": 4},
+    "gates": {"type": "array", "minItems": 1},
+    "loops": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["id", "purpose", "inputs", "outputs", "stop_policy", "stages"]
+      }
+    },
+    "anti_cheat": {"type": "object"}
+  },
+  "additionalProperties": true
+}

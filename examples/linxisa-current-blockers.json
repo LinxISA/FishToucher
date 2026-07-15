@@ -1,0 +1,31 @@
+{
+  "as_of": "2026-07-15",
+  "profile": "pr",
+  "lane": "pin",
+  "source": "fresh runner output is required before reuse",
+  "hard_breaks": [
+    {"id": "source-contract", "status": "pass"},
+    {"id": "compiler-contract", "status": "pass"},
+    {"id": "qemu-contract", "status": "pass"},
+    {
+      "id": "tsvc-qemu-hardbreak",
+      "status": "timeout",
+      "classification": "emulator-runtime",
+      "stops_pr_lane": true
+    },
+    {
+      "id": "linux-userspace-entry",
+      "status": "skipped",
+      "reason": "downstream of first red hard break"
+    }
+  ],
+  "off_path_regressions": [
+    {
+      "id": "busybox-full-os",
+      "status": "fail",
+      "classification": "finish_task_switch/FRET.ST",
+      "stops_pr_lane": false
+    }
+  ],
+  "warning": "This is a routing example, not closure evidence. Replace it with fresh machine-readable runner output."
+}

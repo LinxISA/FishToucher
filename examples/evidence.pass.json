@@ -1,0 +1,30 @@
+{
+  "run_id": "20260715T120000Z-software-smoke",
+  "profile": "pr",
+  "lane": "pin",
+  "gate_id": "software_functional",
+  "command": ["python3", "tools/bringup/run_ai_workload_flow.py", "--profile", "smoke"],
+  "cwd": "/workspace/linx-isa",
+  "environment": {"TZ": "UTC", "RANDOM_SEED": "7"},
+  "started_at": "2026-07-15T12:00:00Z",
+  "finished_at": "2026-07-15T12:03:14Z",
+  "status": "pass",
+  "return_code": 0,
+  "artifacts": [
+    {
+      "path": "workloads/generated/20260715T120000Z-software-smoke/ai-bringup/report.json",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    }
+  ],
+  "sha_manifest": {
+    "superproject": "0123456789abcdef0123456789abcdef01234567",
+    "compiler/llvm": "123456789abcdef0123456789abcdef012345678"
+  },
+  "dirty_tree": false,
+  "agent": {
+    "role": "gpt_verifier",
+    "provider": "openai",
+    "model": "configured-at-runtime",
+    "prompt_revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  }
+}

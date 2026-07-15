@@ -1,0 +1,238 @@
+{
+  "standard": "fishtoucher.dev/v1alpha1",
+  "project": {
+    "id": "linxisa-npu",
+    "source_of_truth": "/Users/zhoubot/linx-isa",
+    "artifact_root": "workloads/generated/<run-id>",
+    "canonical_inputs": [
+      "docs/bringup/agent_runs/manifest.yaml",
+      "docs/bringup/agent_runs/waivers.yaml",
+      "docs/bringup/benchmark_qemu_linux_flow.json",
+      "docs/bringup/ai_workload_bringup_flow.json"
+    ]
+  },
+  "human_authority": {
+    "role": "human_se",
+    "exclusive_actions": [
+      "freeze_interface",
+      "approve_waiver",
+      "resolve_model_conflict",
+      "promote_release",
+      "accept_ppa_claim"
+    ]
+  },
+  "model_pools": [
+    {
+      "id": "gpt_frontier",
+      "provider": "openai",
+      "model_env": "FISHTOUCHER_GPT_MODEL",
+      "capabilities": [
+        "architecture",
+        "planning",
+        "cross_layer_debugging",
+        "independent_review"
+      ]
+    },
+    {
+      "id": "deepseek_worker",
+      "provider": "deepseek",
+      "model_env": "FISHTOUCHER_DEEPSEEK_MODEL",
+      "capabilities": [
+        "bounded_implementation",
+        "test_generation",
+        "regression_repair",
+        "mechanical_review"
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "id": "gpt_architect",
+      "model_pool": "gpt_frontier",
+      "permissions": {
+        "read": ["**"],
+        "write": []
+      },
+      "inputs": ["request", "contracts", "fresh_evidence"],
+      "outputs": ["design", "impact_matrix", "acceptance_criteria"],
+      "definition_of_done": ["interfaces_identified", "gates_named", "risks_recorded"],
+      "escalate_when": ["interface_change", "cross_loop_conflict", "missing_authority"]
+    },
+    {
+      "id": "deepseek_executor",
+      "model_pool": "deepseek_worker",
+      "permissions": {
+        "read": ["assigned_modules", "contracts", "tests"],
+        "write": ["assigned_leaf_module", "module_tests", "module_docs"]
+      },
+      "inputs": ["immutable_work_packet", "acceptance_criteria"],
+      "outputs": ["patch", "test_changes", "change_manifest"],
+      "definition_of_done": ["scope_clean", "targeted_tests_pass", "evidence_emitted"],
+      "escalate_when": ["scope_expansion", "contract_change", "same_failure_twice"]
+    },
+    {
+      "id": "gpt_verifier",
+      "model_pool": "gpt_frontier",
+      "permissions": {
+        "read": ["patch", "raw_logs", "artifacts", "contracts"],
+        "write": []
+      },
+      "inputs": ["raw_evidence", "locked_plan", "candidate_patch"],
+      "outputs": ["verdict", "failure_classification", "proof_boundary"],
+      "definition_of_done": ["raw_logs_read", "hashes_checked", "claim_bounded"],
+      "escalate_when": ["evidence_conflict", "oracle_changed", "provider_disagreement"]
+    },
+    {
+      "id": "deepseek_verifier",
+      "model_pool": "deepseek_worker",
+      "permissions": {
+        "read": ["design", "contracts", "gate_inventory"],
+        "write": []
+      },
+      "inputs": ["design", "acceptance_criteria", "locked_contracts"],
+      "outputs": ["adversarial_review", "missing_cases", "scope_check"],
+      "definition_of_done": ["boundary_cases_checked", "anti_cheat_checked", "verdict_emitted"],
+      "escalate_when": ["ambiguous_contract", "unsafe_permission", "unverifiable_claim"]
+    }
+  ],
+  "gates": [
+    {
+      "id": "contract_integrity",
+      "kind": "policy",
+      "required_evidence": ["interface_versions", "impact_matrix", "human_decision_if_changed"]
+    },
+    {
+      "id": "software_functional",
+      "kind": "executable",
+      "required_evidence": ["elf", "objdump", "trace", "oracle_digest", "test_log"]
+    },
+    {
+      "id": "architecture_correlation",
+      "kind": "executable",
+      "required_evidence": ["functional_diff", "counter_report", "baseline", "causal_explanation"]
+    },
+    {
+      "id": "hardware_unit",
+      "kind": "executable",
+      "required_evidence": ["lint_log", "ut_log", "coverage"]
+    },
+    {
+      "id": "hardware_system",
+      "kind": "executable",
+      "required_evidence": ["it_log", "st_log", "functional_diff", "ca_correlation"]
+    },
+    {
+      "id": "hardware_ppa",
+      "kind": "physical",
+      "required_evidence": ["constraints", "tool_versions", "timing", "area", "power", "congestion"]
+    }
+  ],
+  "loops": [
+    {
+      "id": "software",
+      "purpose": "Preserve programmability and functional correctness from operators through compiler, ISA, and functional model.",
+      "cadence": "fast",
+      "inputs": ["programming_api", "isa_contract", "abi_contract"],
+      "outputs": ["compiler_patch", "elf", "instruction_trace", "regression_report"],
+      "stop_policy": "first_red_hard_break",
+      "stages": [
+        {
+          "id": "software_contract",
+          "actor": "gpt_architect",
+          "verifier": "deepseek_verifier",
+          "gate": "contract_integrity",
+          "artifacts": ["design", "impact_matrix", "test_plan"]
+        },
+        {
+          "id": "software_implementation",
+          "actor": "deepseek_executor",
+          "verifier": "gpt_verifier",
+          "gate": "software_functional",
+          "artifacts": ["patch", "elf", "objdump", "trace", "regression_report"]
+        }
+      ]
+    },
+    {
+      "id": "architecture",
+      "purpose": "Prove that an ISA or microarchitecture change has correct, explainable performance value.",
+      "cadence": "medium",
+      "inputs": ["frozen_isa", "functional_trace", "benchmark_manifest"],
+      "outputs": ["ca_model_patch", "counter_report", "performance_decision"],
+      "stop_policy": "first_red_hard_break",
+      "stages": [
+        {
+          "id": "architecture_hypothesis",
+          "actor": "gpt_architect",
+          "verifier": "deepseek_verifier",
+          "gate": "contract_integrity",
+          "artifacts": ["hypothesis", "baseline", "sensitivity_plan"]
+        },
+        {
+          "id": "architecture_model",
+          "actor": "deepseek_executor",
+          "verifier": "gpt_verifier",
+          "gate": "architecture_correlation",
+          "artifacts": ["model_patch", "functional_diff", "counters", "causal_explanation"]
+        }
+      ]
+    },
+    {
+      "id": "hardware",
+      "purpose": "Converge RTL correctness, model correlation, and physically grounded PPA.",
+      "cadence": "slow",
+      "inputs": ["microarchitecture_contract", "functional_oracle", "ca_model"],
+      "outputs": ["rtl_patch", "ut_it_st_reports", "correlation_report", "ppa_report"],
+      "stop_policy": "first_red_hard_break",
+      "stages": [
+        {
+          "id": "hardware_contract",
+          "actor": "gpt_architect",
+          "verifier": "deepseek_verifier",
+          "gate": "contract_integrity",
+          "artifacts": ["microarchitecture_spec", "interface_table", "verification_plan"]
+        },
+        {
+          "id": "hardware_unit_implementation",
+          "actor": "deepseek_executor",
+          "verifier": "gpt_verifier",
+          "gate": "hardware_unit",
+          "artifacts": ["rtl_patch", "lint_log", "ut_log", "coverage"]
+        },
+        {
+          "id": "hardware_system_correlation",
+          "actor": "deepseek_executor",
+          "verifier": "gpt_verifier",
+          "gate": "hardware_system",
+          "artifacts": ["it_log", "st_log", "functional_diff", "ca_correlation"]
+        },
+        {
+          "id": "hardware_physical_feedback",
+          "actor": "deepseek_executor",
+          "verifier": "gpt_verifier",
+          "gate": "hardware_ppa",
+          "artifacts": ["constraints", "timing", "area", "power", "congestion"]
+        }
+      ]
+    }
+  ],
+  "budgets": {
+    "verification_reserve_percent": 25,
+    "max_attempts_per_packet": 2,
+    "max_write_modules": 3,
+    "repeat_failure_action": "escalate_to_human"
+  },
+  "anti_cheat": {
+    "protected_paths": [
+      "canonical_gate_definitions",
+      "reference_outputs",
+      "active_waivers"
+    ],
+    "forbidden_changes": [
+      "delete_failing_test",
+      "weaken_oracle",
+      "swallow_exit_status",
+      "shrink_required_suite",
+      "print_only_pass"
+    ]
+  }
+}

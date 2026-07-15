@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate flow
+        run: PYTHONPATH=src python3 -m fishtoucher.cli validate config/linxisa.example.json
+      - name: Validate evidence fixture
+        run: PYTHONPATH=src python3 -m fishtoucher.cli evidence examples/evidence.pass.json
+      - name: Run tests
+        run: python3 -m unittest discover -s tests -v
