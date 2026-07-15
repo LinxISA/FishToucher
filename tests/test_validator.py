@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from fishtoucher.planner import render_plan
-from fishtoucher.validator import validate_evidence, validate_flow
+from fishtoucher.planner import render_plan  # noqa: E402
+from fishtoucher.validator import validate_evidence, validate_flow  # noqa: E402
 
 
 def fixture(relative: str) -> dict:

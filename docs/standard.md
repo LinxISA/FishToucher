@@ -31,6 +31,8 @@ Every work packet MUST bind:
 
 Attempts MUST be append-only. A retry MUST NOT overwrite failed evidence.
 
+Consequential inter-agent handoffs MUST use the `fishtoucher.message/v1` envelope and an ordered JSONL mailbox. Transient chat or subagent delivery MAY notify a recipient, but it MUST NOT replace the durable message. The normative turn-taking and failure procedure is defined in [Agent Communication SOP](agent-communication-sop.md).
+
 ## 3. Human authority
 
 The human System Engineer is the final authority for:

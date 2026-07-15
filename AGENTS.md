@@ -6,5 +6,5 @@
 - An implementer must not approve its own work.
 - Do not weaken gates, tests, oracles, baselines, or waivers in an implementation change.
 - Keep diffs bounded and add regression tests before behavior-preserving refactors.
-- Run `python3 -m unittest discover -s tests -v`, flow validation, and evidence validation before reporting completion.
+- Run `python3 -m unittest discover -s tests -v`, flow validation, evidence validation, and mailbox validation before reporting completion.
 - Every commit message follows the LinxISA Lore Commit Protocol and records verification honestly.

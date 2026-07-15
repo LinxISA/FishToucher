@@ -1,0 +1,23 @@
+{
+  "protocol": "fishtoucher.message/v1",
+  "message_id": "software-loop-001-ack-001",
+  "run_id": "software-loop-001",
+  "sequence": 3,
+  "kind": "ack",
+  "sender": {
+    "role": "deepseek_executor",
+    "provider": "openai",
+    "model": "inherited-current-codex-model"
+  },
+  "recipients": ["gpt_sensor"],
+  "in_reply_to": "software-loop-001-packet-001",
+  "created_at": "2026-07-15T09:58:00Z",
+  "payload": {
+    "summary": "Packet accepted with the original three-file scope and no blocker.",
+    "artifacts": [],
+    "claims": [
+      "The native Codex child inherited OpenAI/Codex and is not an actual DeepSeek invocation."
+    ],
+    "requests": []
+  }
+}

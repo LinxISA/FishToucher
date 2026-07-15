@@ -31,6 +31,7 @@ cd FishToucher
 PYTHONPATH=src python3 -m fishtoucher.cli validate config/linxisa.example.json
 PYTHONPATH=src python3 -m fishtoucher.cli plan config/linxisa.example.json
 PYTHONPATH=src python3 -m fishtoucher.cli evidence examples/evidence.pass.json
+PYTHONPATH=src python3 -m fishtoucher.cli mailbox examples/runs/software-loop-001/mailbox.jsonl
 python3 -m unittest discover -s tests -v
 ```
 
@@ -70,13 +71,14 @@ FishToucher must preserve LinxISA’s profile-aware hard-break order. The includ
 
 - [Normative standard](docs/standard.md)
 - [Architecture and data flow](docs/architecture.md)
+- [Agent communication SOP](docs/agent-communication-sop.md)
 - [LinxISA integration profile](docs/linxisa-profile.md)
 - [Threat model](docs/threat-model.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## Status
 
-`v1alpha1` defines and validates the flow contract. Provider adapters, worktree isolation, append-only event storage, and online execution are intentionally future work; the repository does not claim that an NPU, RTL closure, or tapeout has been completed.
+`v1alpha1` defines and validates flow, evidence, agent-message, and mailbox contracts. The recorded [software-loop iteration](examples/runs/software-loop-001/) demonstrates sensor → packet → executor → reject → feedback → revised result → accept. Provider adapters, worktree isolation, coordinator-owned append-only storage, and online execution are intentionally future work; the repository does not claim that an NPU, RTL closure, or tapeout has been completed.
 
 ## License
 

@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Sequence
 
+from .messages import load_mailbox, validate_mailbox, validate_message
 from .planner import render_plan
 from .validator import load_json, validate_evidence, validate_flow
 
@@ -34,11 +35,17 @@ def build_parser() -> argparse.ArgumentParser:
     evidence = commands.add_parser("evidence", help="validate a gate evidence record")
     evidence.add_argument("record", type=Path)
 
+    message = commands.add_parser("message", help="validate one agent message")
+    message.add_argument("message", type=Path)
+
+    mailbox = commands.add_parser("mailbox", help="validate an agent mailbox")
+    mailbox.add_argument("mailbox", type=Path)
+
     plan = commands.add_parser("plan", help="print the deterministic stage plan")
     plan.add_argument("flow", type=Path)
     plan.add_argument("--loop", choices=("software", "architecture", "hardware"))
 
-    schema = commands.add_parser("schema-version", help="print the supported standard version")
+    commands.add_parser("schema-version", help="print the supported standard version")
     return parser
 
 
@@ -49,7 +56,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     try:
-        document = load_json(args.flow if args.command in {"validate", "plan"} else args.record)
+        if args.command in {"validate", "plan"}:
+            document = load_json(args.flow)
+        elif args.command == "evidence":
+            document = load_json(args.record)
+        elif args.command == "message":
+            document = load_json(args.message)
+        else:
+            document = load_mailbox(args.mailbox)
     except (OSError, ValueError, json.JSONDecodeError) as error:
         print(f"ERROR: {error}")
         return 2
@@ -58,6 +72,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _report(validate_flow(document), args.flow)
     if args.command == "evidence":
         return _report(validate_evidence(document), args.record)
+    if args.command == "message":
+        return _report(validate_message(document), args.message)
+    if args.command == "mailbox":
+        return _report(validate_mailbox(document), args.mailbox)
 
     errors = validate_flow(document)
     if errors:
