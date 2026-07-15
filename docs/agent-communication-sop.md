@@ -21,6 +21,8 @@ Codex subagent messages, provider APIs, terminal panes, and future queues MAY de
 
 These are roles, not model names. Every message MUST record the actual provider and model used. If a runtime cannot select DeepSeek, a DeepSeek-role simulation MUST identify the inherited provider; it MUST NOT claim to be a real DeepSeek invocation.
 
+When a Codex child coordinates an external DeepSeek call, messages MUST name DeepSeek as provider only when the delegated reasoning or patch was authored by DeepSeek. The invocation receipt MUST separately name the Codex coordinator and transport. A coordinator that substitutes its own implementation MUST instead record its inherited provider and model.
+
 ## 3. Message envelope
 
 Each message contains:
@@ -162,3 +164,11 @@ fishtoucher mailbox .fishtoucher/runs/<run-id>/mailbox.jsonl
 ```
 
 Passing these checks proves structural integrity only. It does not prove that the implementation or NPU gate is correct.
+
+Validate a provider invocation receipt:
+
+```bash
+fishtoucher invocation .fishtoucher/runs/<run-id>/invocation.json
+```
+
+Every serialized receipt MUST include the exact `fishtoucher.invocation/v1` protocol marker. It records routing identity, request/response SHA-256 values, UTC time bounds, status, and exit code, but not credentials or raw content. A valid unsigned receipt binds local byte streams to a packet; it does not cryptographically attest the remote provider or prove historical append-only storage.

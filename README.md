@@ -25,13 +25,14 @@ It binds each task to exact repository revisions, write scopes, gates, budgets, 
 FishToucher currently ships the v1alpha1 standard, an executable validator, a deterministic plan renderer, LinxISA examples, and role prompts. It does not call provider APIs or mutate LinxISA by itself.
 
 ```bash
-git clone https://github.com/Linx-ISA/FishToucher.git
+git clone https://github.com/LinxISA/FishToucher.git
 cd FishToucher
 
 PYTHONPATH=src python3 -m fishtoucher.cli validate config/linxisa.example.json
 PYTHONPATH=src python3 -m fishtoucher.cli plan config/linxisa.example.json
 PYTHONPATH=src python3 -m fishtoucher.cli evidence examples/evidence.pass.json
 PYTHONPATH=src python3 -m fishtoucher.cli mailbox examples/runs/software-loop-001/mailbox.jsonl
+PYTHONPATH=src python3 -m fishtoucher.cli invocation examples/runs/software-loop-002/invocation-002.json
 python3 -m unittest discover -s tests -v
 ```
 
@@ -52,7 +53,7 @@ Expected plan:
 2. **GPT and DeepSeek have different default lanes.** GPT handles architecture, decomposition, cross-layer diagnosis, and independent review. DeepSeek handles bounded implementation, tests, regressions, and mechanical work.
 3. **The implementer never self-verifies.** High-value stages use a verifier from the other provider.
 4. **The first red hard break owns the lane.** Downstream work stops; timeout, crash, skipped, and missing evidence are not pass.
-5. **Evidence is replayable.** A gate record includes command, working directory, time, status, artifact hashes, SHA manifest, dirty state, and agent/prompt identity.
+5. **Evidence is replayable.** A gate record includes command, working directory, time, status, artifact hashes, SHA manifest, dirty state, and agent/prompt identity. Online provider calls add a versioned receipt that hash-binds the authorized packet to the exact request and response byte streams.
 6. **LinxISA remains authoritative.** FishToucher consumes its canonical manifests and runners; it does not duplicate ISA truth or invent alternate source trees.
 7. **Cross-loop changes invalidate dependent evidence.** ISA, ABI, ELF, trace, benchmark, counter, or microarchitecture contract changes require an impact matrix and human decision.
 
@@ -78,7 +79,7 @@ FishToucher must preserve LinxISA’s profile-aware hard-break order. The includ
 
 ## Status
 
-`v1alpha1` defines and validates flow, evidence, agent-message, and mailbox contracts. The recorded [software-loop iteration](examples/runs/software-loop-001/) demonstrates sensor → packet → executor → reject → feedback → revised result → accept. Provider adapters, worktree isolation, coordinator-owned append-only storage, and online execution are intentionally future work; the repository does not claim that an NPU, RTL closure, or tapeout has been completed.
+`v1alpha1` defines and validates flow, evidence, invocation-receipt, agent-message, and mailbox contracts. The [first software-loop iteration](examples/runs/software-loop-001/) demonstrates the durable handoff protocol with a simulated executor provider. The [second iteration](examples/runs/software-loop-002/) uses a paid DeepSeek V4 Pro executor behind a Codex coordinator, preserves a rejected first result, and closes on an independently accepted repair with two hash-bound invocation receipts. FishToucher still does not ship credentials or a provider adapter, and unsigned receipts do not prove remote identity. Worktree isolation and coordinator-owned append-only storage remain future work; the repository does not claim that an NPU, RTL closure, or tapeout has been completed.
 
 ## License
 

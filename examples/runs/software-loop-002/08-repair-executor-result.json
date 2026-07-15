@@ -1,0 +1,33 @@
+{
+  "protocol": "fishtoucher.message/v1",
+  "message_id": "software-loop-002-result-002",
+  "run_id": "software-loop-002",
+  "sequence": 9,
+  "kind": "result",
+  "sender": {"role": "deepseek_executor", "provider": "deepseek", "model": "deepseek-v4-pro"},
+  "recipients": ["gpt_verifier"],
+  "in_reply_to": "software-loop-002-packet-002",
+  "created_at": "2026-07-15T11:23:12Z",
+  "payload": {
+    "summary": "The DeepSeek-authored repair makes the v1 protocol marker required and exact-matched, with validator and CLI regressions.",
+    "status": "pass",
+    "changed_files": ["src/fishtoucher/invocations.py", "tests/test_invocations.py"],
+    "commands": [
+      {"command": "python3 -m unittest tests.test_invocations -v", "return_code": 0, "result": "20 tests passed"},
+      {"command": "python3 -m unittest discover -s tests -v", "return_code": 0, "result": "43 tests passed"},
+      {"command": "python3 -m compileall -q src tests", "return_code": 0, "result": "No output"},
+      {"command": "git diff --check", "return_code": 0, "result": "No output"},
+      {"command": "ruff check src/fishtoucher/invocations.py src/fishtoucher/cli.py tests/test_invocations.py", "return_code": 0, "result": "All checks passed"}
+    ],
+    "artifacts": [
+      {"path": "examples/runs/software-loop-002/invocation-002.json", "request_sha256": "6eacfda67d6b3ccf32019046af301e664d6994df6354a0f4efabe52e4f280d51", "response_sha256": "77488a39e3f42008f762e0725f56f4440c437c85cea500c033dab3cb1a60a65b"}
+    ],
+    "claims": [
+      "Protocol identity is now serialized, required, and exact-matched.",
+      "The repair stayed inside its two-file implementation scope.",
+      "The coordinator only normalized invalid patch context and import ordering; it did not change DeepSeek's implementation logic."
+    ],
+    "requests": ["Independently rerun the protocol probes and all repository gates."],
+    "skill_evolve": "update: serialized protocol markers must be required, exact-matched, and tested at validator and CLI boundaries"
+  }
+}

@@ -52,7 +52,9 @@ flowchart LR
 
 A flow document compiles into an ordered plan. Ready work sorts by priority and packet ID. Concurrency is permitted only for disjoint write scopes and output directories. Provider output is never used as a gate result.
 
-Future online adapters should implement a provider-neutral request/result protocol and load exact GPT and DeepSeek model names from environment configuration. Credentials must never enter flow documents, prompts, plans, logs, or evidence.
+Online adapters implement a provider-neutral request/result protocol and load exact GPT and DeepSeek model names from deployment configuration. Every call produces a `fishtoucher.invocation/v1` receipt with separate executor, transport, and coordinator identities plus request/response hashes, time bounds, status, and exit code. Credentials and raw prompt/response content must never enter flow documents, plans, mailboxes, or committed evidence.
+
+The recorded `software-loop-002` uses an external Keychain-backed adapter. A Codex coordinator gathers bounded local context and applies the returned patch, while DeepSeek V4 Pro remains the recorded implementation author. This separation gives DeepSeek no implicit filesystem or tool authority.
 
 ## Persistence
 

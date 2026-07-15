@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 from typing import Sequence
 
+from .invocations import validate_invocation_receipt
 from .messages import load_mailbox, validate_mailbox, validate_message
 from .planner import render_plan
 from .validator import load_json, validate_evidence, validate_flow
@@ -41,6 +42,9 @@ def build_parser() -> argparse.ArgumentParser:
     mailbox = commands.add_parser("mailbox", help="validate an agent mailbox")
     mailbox.add_argument("mailbox", type=Path)
 
+    invocation = commands.add_parser("invocation", help="validate an invocation receipt")
+    invocation.add_argument("receipt", type=Path)
+
     plan = commands.add_parser("plan", help="print the deterministic stage plan")
     plan.add_argument("flow", type=Path)
     plan.add_argument("--loop", choices=("software", "architecture", "hardware"))
@@ -62,6 +66,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             document = load_json(args.record)
         elif args.command == "message":
             document = load_json(args.message)
+        elif args.command == "invocation":
+            document = load_json(args.receipt)
         else:
             document = load_mailbox(args.mailbox)
     except (OSError, ValueError, json.JSONDecodeError) as error:
@@ -74,6 +80,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _report(validate_evidence(document), args.record)
     if args.command == "message":
         return _report(validate_message(document), args.message)
+    if args.command == "invocation":
+        return _report(validate_invocation_receipt(document), args.receipt)
     if args.command == "mailbox":
         return _report(validate_mailbox(document), args.mailbox)
 

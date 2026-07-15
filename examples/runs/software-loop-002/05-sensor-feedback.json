@@ -1,0 +1,20 @@
+{
+  "protocol": "fishtoucher.message/v1",
+  "message_id": "software-loop-002-feedback-001",
+  "run_id": "software-loop-002",
+  "sequence": 6,
+  "kind": "feedback",
+  "sender": {"role": "gpt_sensor", "provider": "openai", "model": "gpt-5.5"},
+  "recipients": ["deepseek_executor"],
+  "in_reply_to": "software-loop-002-verdict-001",
+  "created_at": "2026-07-15T11:11:59Z",
+  "payload": {
+    "summary": "The first packet is closed as rejected; the changed hypothesis is that protocol identity is serialized data, not module-level documentation.",
+    "artifacts": [],
+    "claims": [
+      "The initial packet exhausted its single implementation attempt.",
+      "The repair requires no scope or interface expansion beyond enforcing the named v1 protocol."
+    ],
+    "requests": ["Execute the separately bounded repair packet without rewriting the failed attempt."]
+  }
+}

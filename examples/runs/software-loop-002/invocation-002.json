@@ -1,0 +1,25 @@
+{
+  "protocol": "fishtoucher.invocation/v1",
+  "invocation": "software-loop-002-deepseek-002",
+  "run": "software-loop-002",
+  "packet": "software-loop-002-packet-002",
+  "role": "deepseek_executor",
+  "provider": "deepseek",
+  "model": "deepseek-v4-pro",
+  "transport": {
+    "role": "api_adapter",
+    "provider": "deepseek",
+    "model": "deepseek-v4-pro"
+  },
+  "coordinator": {
+    "role": "deepseek_coordinator",
+    "provider": "openai",
+    "model": "gpt-5.3-codex-spark"
+  },
+  "request_sha256": "6eacfda67d6b3ccf32019046af301e664d6994df6354a0f4efabe52e4f280d51",
+  "response_sha256": "77488a39e3f42008f762e0725f56f4440c437c85cea500c033dab3cb1a60a65b",
+  "started_at": "2026-07-15T11:17:03Z",
+  "ended_at": "2026-07-15T11:19:05Z",
+  "status": "success",
+  "exit_code": 0
+}

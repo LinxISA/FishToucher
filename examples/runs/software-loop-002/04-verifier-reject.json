@@ -1,0 +1,32 @@
+{
+  "protocol": "fishtoucher.message/v1",
+  "message_id": "software-loop-002-verdict-001",
+  "run_id": "software-loop-002",
+  "sequence": 5,
+  "kind": "verdict",
+  "sender": {"role": "gpt_verifier", "provider": "openai", "model": "gpt-5.5"},
+  "recipients": ["gpt_sensor", "deepseek_executor"],
+  "in_reply_to": "software-loop-002-result-001",
+  "created_at": "2026-07-15T11:11:59Z",
+  "payload": {
+    "summary": "Reject: the serialized receipt is not self-identifying because the validator omits and rejects the required fishtoucher.invocation/v1 protocol marker.",
+    "disposition": "reject",
+    "evidence_checked": [
+      "three-file implementation diff", "17 focused tests", "40 full tests", "compileall", "git diff --check",
+      "protected-path diff", "request and response SHA-256 values", "runtime artifact permissions", "adversarial protocol-marker probes"
+    ],
+    "artifacts": [],
+    "claims": [
+      "An untagged receipt passes validation.",
+      "The correct fishtoucher.invocation/v1 marker and unrelated protocol markers are both rejected as unknown fields.",
+      "Green authored tests do not satisfy the packet's serialized protocol-version contract."
+    ],
+    "requests": [
+      "Require protocol with the exact value fishtoucher.invocation/v1.",
+      "Add missing, wrong, and valid protocol regression tests, including CLI behavior.",
+      "Rerun every packet and repository gate."
+    ],
+    "proof_boundary": "Matching hashes bind the ACK to local request and response byte streams but do not independently attest remote provider identity or coordinator fidelity.",
+    "skill_evolve": "no-update"
+  }
+}
