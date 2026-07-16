@@ -1,5 +1,17 @@
 # 乱序摸鱼（FishToucher）
 
+<p align="center">
+  <img src="docs/assets/fishtoucher-logo.png" alt="乱序摸鱼：FishToucher 多 Agent harness" width="640">
+</p>
+
+<p align="center">
+  <a href="docs/standard.md"><img alt="Agent Harness" src="https://img.shields.io/badge/type-agent%20harness-5B5BD6"></a>
+  <a href="docs/architecture.md"><img alt="Multi-Agent" src="https://img.shields.io/badge/orchestration-multi--agent-2563EB"></a>
+  <a href="docs/standard.md"><img alt="Prototype Contract" src="https://img.shields.io/badge/contract-fishtoucher.prototype-059669"></a>
+  <a href="pyproject.toml"><img alt="Python 3.11+" src="https://img.shields.io/badge/python-%E2%89%A53.11-3776AB?logo=python&logoColor=white"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/LinxISA/FishToucher"></a>
+</p>
+
 **乱序摸鱼**是 FishToucher 仓库的中文名。它是一个面向 LinxISA NPU 大型系统开发的多 Agent harness 原型：描述岗位、权限、交付、验证、升级和人类决策点，但当前不直接启动 Agent 或调用付费模型。
 
 它协调三条独立推进的循环：
