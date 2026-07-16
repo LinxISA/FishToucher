@@ -1,4 +1,6 @@
 {
+  "contract": "fishtoucher.prototype",
+  "kind": "evidence",
   "run_id": "20260715T120000Z-software-smoke",
   "profile": "pr",
   "lane": "pin",
@@ -21,9 +23,10 @@
     "compiler/llvm": "123456789abcdef0123456789abcdef012345678"
   },
   "dirty_tree": false,
-  "agent": {
-    "role": "gpt_verifier",
-    "provider": "openai",
+  "actor": {
+    "name": "myers",
+    "role_id": "cross-stack-verification-engineer",
+    "driver_id": "codex",
     "model": "configured-at-runtime",
     "prompt_revision": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   }

@@ -1,156 +1,100 @@
-# FishToucher Three-Loop Standard
+# FishToucher Prototype Standard
 
 ## 1. Scope
 
-This document defines the normative control, evidence, and promotion contract for multi-agent development of the LinxISA NPU stack. The keywords **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are normative.
+FishToucher coordinates multi-agent engineering work for the LinxISA NPU stack. LinxISA specifications, repositories, manifests, tests, and fresh runner reports remain the source of technical truth.
 
-FishToucher coordinates work. LinxISA specifications, code, tests, canonical manifests, and fresh runner reports remain the engineering source of truth.
+The keywords **MUST**, **MUST NOT**, **SHOULD**, and **MAY** are normative.
 
-## 2. Control loop
+## 2. One prototype contract
 
-Every agent action MUST follow this state transition:
+Every serialized flow, message, receipt, and evidence record MUST carry:
 
-```text
-DRAFT → AUTHORIZED → RUNNING → VERIFYING → PASS
-                                  ├──────→ FAIL
-                                  ├──────→ BLOCKED
-                                  └──────→ ESCALATED
+```json
+"contract": "fishtoucher.prototype"
 ```
 
-An agent MAY propose a transition. Only the coordinator MAY authorize tools and write state. Only a deterministic gate evaluator MAY produce `PASS`.
+There are no numbered protocol variants and no compatibility readers. A breaking prototype change updates code, schemas, fixtures, and tests together.
 
-Every work packet MUST bind:
+## 3. Organization and authority
 
-- intent and explicit non-goals;
-- loop, stage, owner, and independent verifier;
-- repository and submodule SHAs;
-- read, write, protected, and network scopes;
-- required inputs, outputs, gates, and Definition of Done;
-- time, token, tool-call, attempt, diff-size, and storage budgets;
-- retry and human-escalation rules.
+A Role Card defines a job, not a model provider. It MUST declare:
 
-Attempts MUST be append-only. A retry MUST NOT overwrite failed evidence.
+- stable role id, title, job family, and objective;
+- capabilities and permissions;
+- allowed and preferred drivers;
+- inputs, outputs, completion conditions, and escalation conditions.
 
-Consequential inter-agent handoffs MUST use the `fishtoucher.message/v1` envelope and an ordered JSONL mailbox. Transient chat or subagent delivery MAY notify a recipient, but it MUST NOT replace the durable message. The normative turn-taking and failure procedure is defined in [Agent Communication SOP](agent-communication-sop.md).
-
-## 3. Human authority
-
-The human System Engineer is the final authority for:
-
-- target architecture and version boundaries;
-- ISA, ABI, privilege, memory-model, ELF, trace, and public-interface freezes;
-- cross-module conflict resolution;
-- waivers and exceptions;
-- release, performance, and PPA claims.
-
-Agents MAY prepare decision records and alternatives. They MUST stop before applying a human-only decision.
-
-## 4. Model routing
-
-Exact model names belong in deployment configuration, never in the standard.
-
-The GPT pool SHOULD own high-context architecture analysis, task decomposition, design review, and cross-layer diagnosis. The DeepSeek pool SHOULD own bounded module implementation, test completion, regression repair, and mechanical work.
-
-The implementation provider MUST differ from the independent verification provider for promotion-critical work. A disagreement MUST produce a decision record for the human; agents MUST NOT resolve it by majority vote.
-
-## 5. Bootstrap ladder
-
-Before the steady-state loops can claim maturity, the system MUST establish these ordered executable contracts:
-
-1. **ISA ↔ functional model:** positive, boundary, exception, and randomized instruction tests with comparable register, memory, exception, and commit traces.
-2. **Compiler → ISA → functional model:** target/ABI/codegen/assembly/object/link execution at required optimization levels.
-3. **C runtime → compiler → ISA → functional model:** startup, runtime support, linker/loader, syscall ABI, TLS, atomics, signals, and file interfaces.
-4. **Linux/BusyBox/toolchain → system model:** boot, init, rootfs, shell, and ordinary ELF execution with privilege, MMU, interrupt, timer, and device behavior.
-
-A later stage MUST NOT substitute for a missing earlier contract.
-
-## 6. The three loops
-
-### 6.1 Software loop
+An agent instance has a unique name and exactly one active role per assignment. Effective authority is:
 
 ```text
-programming framework → compiler → ISA/ABI → functional model
+role permissions ∩ assignment authority ∩ runtime sandbox
 ```
 
-The software loop MUST optimize for fast functional feedback. Promotion evidence MUST include the programming/API contract, compiler change, ISA and ABI versions, ELF, disassembly and relocation sidecars when applicable, functional trace or digest, and regression inventory.
+No component may widen this intersection. Review roles MUST be read-only. An implementer MUST NOT verify its own result.
 
-A successful compile MUST NOT be reported as runtime closure. A QEMU pass MUST NOT imply cycle-model, RTL, or PPA closure.
+Only the human System Engineer may freeze interfaces, approve waivers, resolve model conflicts, and promote releases. The `steward` MUST be the single routine human-facing role. A new steward MUST complete the takeover inventory and publish the first full report before spawning. It MAY spawn only registered roles and MUST aggregate progress plus every unresolved layer escalation into the report defined by `docs/steward-sop.md`.
 
-### 6.2 Architecture loop
+## 4. Communication
+
+The durable normal path is:
 
 ```text
-frozen ISA → functional oracle → cycle-accurate model → benchmark → decision
+assignment → result → verdict
 ```
 
-Correctness MUST pass before performance is evaluated. Every claimed improvement MUST identify a causal mechanism through instruction count, IPC, stalls, queue occupancy, bandwidth, utilization, latency, or another declared counter.
+`escalation` is exceptional. A result replies to its assignment; a verdict replies to the result. Internal delegated invocations MUST NOT add mailbox messages. Cross-role communication MUST be routed by the steward as referenced structured records, not free-form peer chat.
 
-Promotion evidence MUST include benchmark and seed manifests, model configuration, baseline, functional differential, counters/traces, performance delta, causal explanation, and sensitivity results. An unexplained improvement MUST fail review.
+An assignment MUST bind a named assignee, exact target, base revision, read/write/tool/network/delegation authority, protected paths, context line ranges, completion conditions, commands, budgets, and escalation rules.
 
-### 6.3 Hardware loop
+A rejecting verdict MUST identify each defect with severity, evidence, required fix, write scope, and required commands. Criticism without an executable repair is invalid.
+
+A result MAY carry compact external `references`, including filed issue URLs. Raw provider output and copied issue bodies are not references.
+
+## 5. Drivers
+
+Drivers execute roles. They do not define them.
+
+- The GPT `codex` driver is the default implementation and review path.
+- An optional DeepSeek driver MAY execute `specialist-coder` assignments.
+- All work MAY be completed with GPT drivers only.
+- Exact models are deployment configuration, never role ids.
+
+DeepSeek has no implicit repository, shell, network, credential, or tool authority. An external provider receives only the assignment context and tools granted by the permission intersection.
+
+The Codex native spawn surface does not provide a portable per-call provider field. A user-level custom Codex provider may work with an OpenAI-compatible API, but the portable harness boundary is a driver. A standalone implementation SHOULD use Codex SDK/MCP for repository-capable GPT agents and an Agents SDK provider or equivalent adapter for DeepSeek.
+
+## 6. Invocation evidence
+
+Each provider call MUST write immutable, mode-`0600` logs outside the source tree:
 
 ```text
-microarchitecture RTL → UT → IT → ST → correlation → synthesis/P&R
+<run>/calls/<call-id>/<name>-<role>-req.json
+<run>/calls/<call-id>/<name>-<role>-resp.json
 ```
 
-UT MUST cover local module behavior. IT MUST cover interfaces, handshakes, and timing relationships. ST MUST run full programs or system scenarios. Functional results MUST be compared with the functional model, and cycle/counter behavior MUST be correlated with the CA model.
+The receipt MUST bind driver/provider/model, request and response hashes, timestamps, status, exit code, token usage, and tool actions. Raw request or response content MUST NOT be embedded in the receipt or mailbox.
 
-PPA evidence MUST identify tools, versions, process/corner, constraints, clocks, seeds, and raw timing, area, power, congestion, and critical-path reports.
+## 7. Three loops
 
-## 7. Cross-loop contracts
+The software, architecture, and hardware loops progress independently behind versioned LinxISA interfaces. Each loop MUST stop at its first red hard break.
 
-Only versioned artifacts SHOULD cross loop boundaries:
+- Software proves API/compiler/ISA/functional behavior.
+- Architecture proves functional equivalence before causal performance analysis.
+- Hardware proves UT, integration, system behavior, model correlation, and reproducible physical evidence.
 
-- ISA and ABI versions;
-- calling convention, ELF, and relocation contracts;
-- trace and performance-counter schemas;
-- benchmark and seed manifests;
-- functional digests;
-- microarchitecture configuration;
-- repository and toolchain SHA manifests.
+A later loop MUST NOT substitute for a missing earlier contract. A QEMU result does not prove cycle-model, RTL, performance, or physical closure.
 
-Changing a shared contract MUST generate an impact matrix, invalidate dependent cached evidence, schedule affected cross-loop gates, and require a human decision.
+## 8. Evidence and anti-gaming
 
-## 8. Gate and evidence semantics
+Only deterministic evaluators derive gate status. `timeout`, `crash`, `skipped`, stale, and missing evidence are not pass. Waivers remain visibly waived and require a human record with owner, issue, phase, and expiry.
 
-Gate status is one of `pass`, `fail`, `timeout`, `crash`, `skipped`, or `waived`. Only `pass` satisfies an unwaived required gate. `timeout`, `crash`, `skipped`, and missing evidence MUST NOT be normalized to pass.
+An implementation MUST NOT delete failing tests, weaken oracles, swallow exit status, shrink required suites, print a pass token instead of testing, reuse stale binaries, or overwrite failed attempts.
 
-Executable evidence MUST record:
+## 9. Verification and evolution
 
-- literal argument vector, working directory, and allowed environment;
-- start/end times, timeout, and return code;
-- stdout/stderr and output artifact hashes;
-- test inventory, selection, reference origin, and random seeds;
-- superproject and complete submodule SHA manifest;
-- dirty-tree state, tool versions, and input hashes;
-- actor provider/model, role, and prompt revision;
-- independent reviewer verdict and proof boundary.
+Dedicated LLVM, QEMU, ISA, and cross-stack verification jobs remain independent from implementation. Harness audit and optimization run only after a product verdict and may measure context bytes, calls, retries, latency, accepted-call ratio, and utilization. They MUST NOT rewrite accepted product evidence or gates.
 
-A Markdown status page MUST be treated as a generated view. Fresh machine-readable runner output wins on disagreement.
+A new role SHOULD require only a Role Card, a concise prompt, and tests. Requiring a new runtime role branch is an architectural defect unless the role introduces a genuinely new capability class.
 
-A waiver MUST be visibly `waived`, not green, and MUST include owner, issue, phase/lane/profile, rationale, human identity, and expiration.
-
-## 9. Stop, retry, and escalation
-
-Dependent stages MUST run sequentially. A loop MUST stop at its first red hard break. Independent owners MAY run concurrently only with disjoint write scopes, resource locks, and output directories.
-
-Infrastructure failures MAY receive two bounded retries. A code failure MAY receive another attempt only when the hypothesis or failure signature changes. Repeating the same failure twice MUST escalate.
-
-The harness MUST escalate on contract change, scope expansion, model disagreement, destructive operations, budget exhaustion, missing licensed tools, requested/expired waiver, or any improvement obtained by weakening coverage.
-
-## 10. Anti-gaming requirements
-
-An implementation packet MUST NOT:
-
-- delete or disable a failing test;
-- change its oracle, reference output, gate definition, or threshold;
-- add `|| true`, swallow a return code, or pass by printing a token;
-- shrink a required suite or hide an unsupported case;
-- use stale binaries or evidence from another SHA manifest;
-- overwrite a prior failure packet;
-- modify more than three LinxISA modules without explicit expansion.
-
-Tests may change only when the packet explicitly owns them. Oracle, gate, baseline, and waiver changes require a separate human-reviewed contract packet.
-
-## 11. Completion
-
-A task is complete only when all required unwaived gates pass, evidence hashes verify, the independent reviewer accepts the bounded claim, the SHA manifest is reproducible, unresolved issues are recorded, and each participating module emits `skill-evolve: update ...` or `skill-evolve: no-update ...`.
+Prototype tests MUST validate contracts, role/prompt registration, capability and authority bounds, message shape, driver routing, and loop topology. They MUST NOT spawn real agents, call paid providers, file issues, or run performance workloads.

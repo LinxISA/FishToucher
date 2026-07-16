@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "fishtoucher"
 version = "0.1.0"
-description = "Evidence-first multi-agent harness standard for LinxISA NPU development"
+description = "乱序摸鱼: evidence-first multi-agent harness standard for LinxISA NPU development"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Apache-2.0" }
-authors = [{ name = "Linx-ISA" }]
+authors = [{ name = "LinxISA" }]
 dependencies = []
 
 [project.scripts]

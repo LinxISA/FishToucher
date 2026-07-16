@@ -1,0 +1,24 @@
+{
+  "contract": "fishtoucher.prototype",
+  "kind": "invocation",
+  "invocation_id": "prototype-001-call-1",
+  "run_id": "prototype-001",
+  "assignment_id": "prototype-001-assignment-1",
+  "actor": {"name": "ritchie", "role_id": "specialist-coder"},
+  "driver": {
+    "id": "codex",
+    "kind": "codex-native-or-sdk",
+    "provider": "openai",
+    "model": "runtime-gpt"
+  },
+  "request_log": "ritchie-specialist-coder-req.json",
+  "response_log": "ritchie-specialist-coder-resp.json",
+  "request_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "response_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "started_at": "2026-07-15T10:02:00Z",
+  "ended_at": "2026-07-15T10:05:00Z",
+  "status": "success",
+  "exit_code": 0,
+  "usage": {"input_tokens": 1200, "output_tokens": 340},
+  "tool_actions": ["repo.read", "repo.write", "shell.test"]
+}

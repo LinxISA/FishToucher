@@ -1,128 +1,21 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://linxisa.github.io/FishToucher/schemas/message.schema.json",
-  "title": "FishToucher Agent Message",
+  "$id": "https://linx-isa.github.io/FishToucher/schemas/message.schema.json",
+  "title": "FishToucher Prototype Message",
   "type": "object",
-  "required": [
-    "protocol",
-    "message_id",
-    "run_id",
-    "sequence",
-    "kind",
-    "sender",
-    "recipients",
-    "in_reply_to",
-    "created_at",
-    "payload"
-  ],
+  "required": ["contract", "message_id", "run_id", "sequence", "kind", "sender", "recipients", "in_reply_to", "created_at", "payload"],
   "properties": {
-    "protocol": {"const": "fishtoucher.message/v1"},
-    "message_id": {"type": "string", "minLength": 1},
-    "run_id": {"type": "string", "minLength": 1},
-    "sequence": {"type": "integer", "minimum": 1},
-    "kind": {
-      "enum": [
-        "observation",
-        "work_packet",
-        "ack",
-        "question",
-        "answer",
-        "result",
-        "verdict",
-        "feedback",
-        "escalation"
-      ]
-    },
+    "contract": {"const": "fishtoucher.prototype"},
+    "message_id": {"type": "string", "minLength": 1}, "run_id": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 1}, "kind": {"enum": ["assignment", "result", "verdict", "escalation"]},
     "sender": {
-      "type": "object",
-      "required": ["role", "provider", "model"],
-      "properties": {
-        "role": {"type": "string", "minLength": 1},
-        "provider": {"type": "string", "minLength": 1},
-        "model": {"type": "string", "minLength": 1}
-      },
+      "type": "object", "required": ["name", "role_id", "driver_id", "model"],
+      "properties": {"name": {"type": "string"}, "role_id": {"type": "string"}, "driver_id": {"type": "string"}, "model": {"type": "string"}},
       "additionalProperties": false
     },
-    "recipients": {
-      "type": "array",
-      "minItems": 1,
-      "uniqueItems": true,
-      "items": {"type": "string", "minLength": 1}
-    },
-    "in_reply_to": {
-      "type": ["string", "null"],
-      "minLength": 1
-    },
-    "created_at": {
-      "type": "string",
-      "format": "date-time",
-      "pattern": "Z$"
-    },
-    "payload": {
-      "type": "object",
-      "required": ["summary"],
-      "properties": {
-        "summary": {"type": "string", "minLength": 1},
-        "artifacts": {"type": "array"},
-        "claims": {"type": "array"},
-        "requests": {"type": "array"}
-      },
-      "additionalProperties": true
-    }
+    "recipients": {"type": "array", "minItems": 1, "uniqueItems": true},
+    "in_reply_to": {"type": ["string", "null"]}, "created_at": {"type": "string", "format": "date-time"},
+    "payload": {"type": "object"}
   },
-  "additionalProperties": false,
-  "allOf": [
-    {
-      "if": {
-        "properties": {
-          "kind": {
-            "enum": [
-              "work_packet",
-              "ack",
-              "question",
-              "answer",
-              "result",
-              "verdict",
-              "feedback"
-            ]
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "in_reply_to": {"type": "string", "minLength": 1}
-        }
-      }
-    },
-    {
-      "if": {"properties": {"kind": {"const": "work_packet"}}},
-      "then": {
-        "properties": {
-          "payload": {
-            "required": ["summary", "write_scope", "acceptance", "budget"]
-          }
-        }
-      }
-    },
-    {
-      "if": {"properties": {"kind": {"const": "result"}}},
-      "then": {
-        "properties": {
-          "payload": {
-            "required": ["summary", "status", "changed_files", "commands"]
-          }
-        }
-      }
-    },
-    {
-      "if": {"properties": {"kind": {"const": "verdict"}}},
-      "then": {
-        "properties": {
-          "payload": {
-            "required": ["summary", "disposition", "evidence_checked"]
-          }
-        }
-      }
-    }
-  ]
+  "additionalProperties": false
 }

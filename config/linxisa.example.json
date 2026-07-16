@@ -1,238 +1,434 @@
 {
-  "standard": "fishtoucher.dev/v1alpha1",
+  "contract": "fishtoucher.prototype",
   "project": {
     "id": "linxisa-npu",
-    "source_of_truth": "/Users/zhoubot/linx-isa",
-    "artifact_root": "workloads/generated/<run-id>",
-    "canonical_inputs": [
-      "docs/bringup/agent_runs/manifest.yaml",
-      "docs/bringup/agent_runs/waivers.yaml",
-      "docs/bringup/benchmark_qemu_linux_flow.json",
-      "docs/bringup/ai_workload_bringup_flow.json"
-    ]
+    "display_name": "乱序摸鱼",
+    "repository_name": "FishToucher",
+    "root": "/Users/zhoubot/linx-isa",
+    "source_of_truth": "LinxISA superproject manifests and fresh runner reports"
   },
   "human_authority": {
-    "role": "human_se",
+    "role": "human-system-engineer",
+    "interface_role": "steward",
     "exclusive_actions": [
       "freeze_interface",
       "approve_waiver",
       "resolve_model_conflict",
-      "promote_release",
-      "accept_ppa_claim"
+      "promote_release"
     ]
   },
-  "model_pools": [
+  "drivers": [
     {
-      "id": "gpt_frontier",
+      "id": "codex",
+      "kind": "codex-native-or-sdk",
       "provider": "openai",
-      "model_env": "FISHTOUCHER_GPT_MODEL",
+      "model": "deployment-configured-gpt",
+      "enabled": true,
       "capabilities": [
-        "architecture",
-        "planning",
-        "cross_layer_debugging",
-        "independent_review"
-      ]
+        "repo.read",
+        "repo.write",
+        "shell.readonly",
+        "shell.test",
+        "plan.write",
+        "delegate",
+        "subagent.spawn",
+        "issue.write",
+        "trace.read"
+      ],
+      "credential_env": null
     },
     {
-      "id": "deepseek_worker",
+      "id": "deepseek",
+      "kind": "openai-compatible",
       "provider": "deepseek",
-      "model_env": "FISHTOUCHER_DEEPSEEK_MODEL",
+      "model": "deployment-configured-deepseek",
+      "enabled": false,
+      "capabilities": ["repo.read", "repo.write", "shell.readonly", "shell.test"],
+      "credential_env": "DEEPSEEK_API_KEY"
+    },
+    {
+      "id": "fake",
+      "kind": "deterministic-test-double",
+      "provider": "local",
+      "model": "fixture",
+      "enabled": true,
       "capabilities": [
-        "bounded_implementation",
-        "test_generation",
-        "regression_repair",
-        "mechanical_review"
-      ]
+        "repo.read",
+        "repo.write",
+        "shell.readonly",
+        "shell.test",
+        "plan.write",
+        "delegate",
+        "subagent.spawn",
+        "issue.write",
+        "trace.read"
+      ],
+      "credential_env": null
     }
   ],
   "roles": [
     {
-      "id": "gpt_architect",
-      "model_pool": "gpt_frontier",
+      "id": "steward",
+      "title": "管家 / Engineering Steward",
+      "job_family": "linxisa-program-leadership",
+      "objective": "Be the only human-facing interface, spawn bounded LinxISA subagents, preserve layered escalations, and report the complete project state.",
+      "capabilities": ["assignment.issue", "workflow.coordinate", "subagent.spawn", "report.aggregate"],
       "permissions": {
         "read": ["**"],
-        "write": []
+        "write": ["runs/**"],
+        "tools": ["repo.read", "plan.write", "subagent.spawn", "trace.read"],
+        "network": false,
+        "delegate_roles": [
+          "isa-architect",
+          "isa-verification-engineer",
+          "qemu-designer",
+          "qemu-verification-engineer",
+          "llvm-designer",
+          "llvm-verification-engineer",
+          "superproject-bringup-observer",
+          "senior-coder",
+          "specialist-coder",
+          "cross-stack-verification-engineer",
+          "harness-auditor",
+          "harness-efficiency-engineer",
+          "role-skill-curator"
+        ],
+        "approve": ["assignment"]
       },
-      "inputs": ["request", "contracts", "fresh_evidence"],
-      "outputs": ["design", "impact_matrix", "acceptance_criteria"],
-      "definition_of_done": ["interfaces_identified", "gates_named", "risks_recorded"],
-      "escalate_when": ["interface_change", "cross_loop_conflict", "missing_authority"]
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["human_objective", "project_state", "layer_escalations"],
+      "outputs": ["task_graph", "assignment", "engineering_report", "escalation_digest", "human_decision_request"],
+      "definition_of_done": ["Every task has one named owner, bounded authority, independent verification, and visible status in the human report."],
+      "escalate_when": ["human-only decision", "scope conflict", "budget exhaustion", "cross-layer ownership conflict"]
     },
     {
-      "id": "deepseek_executor",
-      "model_pool": "deepseek_worker",
+      "id": "isa-architect",
+      "title": "指令集架构师 / ISA Architect",
+      "job_family": "linxisa-isa-architecture",
+      "objective": "Protect the v0.56 golden ISA by checking semantic self-consistency, encoding uniqueness, reserved space, and downstream contract clarity.",
+      "capabilities": ["work.review", "architecture.review", "isa.golden.review", "encoding.audit"],
       "permissions": {
-        "read": ["assigned_modules", "contracts", "tests"],
-        "write": ["assigned_leaf_module", "module_tests", "module_docs"]
+        "read": ["isa/**", "docs/architecture/**", "docs/reference/examples/**", "tools/isa/**", "avs/compiler/**", "avs/qemu/**", "compiler/llvm/**", "emulator/qemu/**", "tools/pyCircuit/**"],
+        "write": [],
+        "tools": ["repo.read", "shell.readonly", "shell.test"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": ["isa-quality-evidence"]
       },
-      "inputs": ["immutable_work_packet", "acceptance_criteria"],
-      "outputs": ["patch", "test_changes", "change_manifest"],
-      "definition_of_done": ["scope_clean", "targeted_tests_pass", "evidence_emitted"],
-      "escalate_when": ["scope_expansion", "contract_change", "same_failure_twice"]
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["golden_isa", "architecture_contracts", "generated_decode_evidence"],
+      "outputs": ["golden_consistency_report", "encoding_conflict_report", "normative_issue_list"],
+      "definition_of_done": ["Golden generation, canonical validation, encoding ownership, and normative semantics have explicit evidence."],
+      "escalate_when": ["encoding collision", "ambiguous architectural semantics", "golden and manual divergence"]
     },
     {
-      "id": "gpt_verifier",
-      "model_pool": "gpt_frontier",
+      "id": "isa-verification-engineer",
+      "title": "指令集验证工程师 / ISA Compatibility Traffic Controller",
+      "job_family": "linxisa-cross-stack-verification",
+      "objective": "Police compatibility across golden ISA, LLVM, QEMU, and assigned models; identify the first mismatch, route ownership, and file a reproducible issue when authorized.",
+      "capabilities": ["work.review", "evidence.verify", "isa.compatibility.audit", "issue.file"],
       "permissions": {
-        "read": ["patch", "raw_logs", "artifacts", "contracts"],
-        "write": []
+        "read": ["isa/**", "docs/architecture/**", "docs/bringup/**", "avs/**", "compiler/llvm/**", "emulator/qemu/**", "tools/pyCircuit/**", "rtl/LinxCore/**"],
+        "write": [],
+        "tools": ["repo.read", "shell.readonly", "shell.test", "issue.write", "trace.read"],
+        "network": true,
+        "delegate_roles": [],
+        "approve": ["compatibility-verdict"]
       },
-      "inputs": ["raw_evidence", "locked_plan", "candidate_patch"],
-      "outputs": ["verdict", "failure_classification", "proof_boundary"],
-      "definition_of_done": ["raw_logs_read", "hashes_checked", "claim_bounded"],
-      "escalate_when": ["evidence_conflict", "oracle_changed", "provider_disagreement"]
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["golden_isa", "candidate_revisions", "compiler_evidence", "qemu_evidence", "model_evidence"],
+      "outputs": ["compatibility_matrix", "first_mismatch_report", "filed_issue_references", "ownership_route"],
+      "definition_of_done": ["Every assigned surface is compatible, incompatible, or explicitly unproven with a smallest reproducer and owner."],
+      "escalate_when": ["golden ambiguity", "cross-layer disagreement", "issue authority missing", "no owning role"]
     },
     {
-      "id": "deepseek_verifier",
-      "model_pool": "deepseek_worker",
+      "id": "qemu-designer",
+      "title": "QEMU 设计工程师 / Linx QEMU Designer",
+      "job_family": "linxisa-qemu-development",
+      "objective": "Implement assigned Linx architectural semantics in the pinned emulator/QEMU module and add focused regression evidence.",
+      "capabilities": ["code.modify", "qemu.design"],
       "permissions": {
-        "read": ["design", "contracts", "gate_inventory"],
-        "write": []
+        "read": ["isa/**", "docs/architecture/**", "avs/qemu/**", "emulator/qemu/**"],
+        "write": ["emulator/qemu/**"],
+        "tools": ["repo.read", "repo.write", "shell.readonly", "shell.test"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": []
       },
-      "inputs": ["design", "acceptance_criteria", "locked_contracts"],
-      "outputs": ["adversarial_review", "missing_cases", "scope_check"],
-      "definition_of_done": ["boundary_cases_checked", "anti_cheat_checked", "verdict_emitted"],
-      "escalate_when": ["ambiguous_contract", "unsafe_permission", "unverifiable_claim"]
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["assignment", "golden_semantics", "smallest_reproducer"],
+      "outputs": ["qemu_patch", "focused_regression", "runtime_evidence", "risk_report"],
+      "definition_of_done": ["The smallest QEMU-owned divergence is fixed and focused plus required QEMU gates are reported."],
+      "escalate_when": ["ISA ambiguity", "compiler-owned failure", "write outside emulator/qemu", "system gate regression"]
+    },
+    {
+      "id": "qemu-verification-engineer",
+      "title": "QEMU 验证工程师 / Linx QEMU Verification Engineer",
+      "job_family": "linxisa-qemu-verification",
+      "objective": "Independently prove assigned QEMU behavior with focused AVS, opcode sync, runtime, system, and bounded trace evidence.",
+      "capabilities": ["evidence.verify", "qemu.verify"],
+      "permissions": {
+        "read": ["isa/**", "docs/architecture/**", "avs/qemu/**", "emulator/qemu/**"],
+        "write": ["avs/qemu/**", "emulator/qemu/tests/**"],
+        "tools": ["repo.read", "repo.write", "shell.readonly", "shell.test", "trace.read"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": ["qemu-verdict"]
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["assignment", "candidate_patch", "golden_semantics", "required_qemu_gates"],
+      "outputs": ["qemu_test_patch", "qemu_verification_report", "first_divergence_evidence", "proof_boundary"],
+      "definition_of_done": ["Focused and required QEMU gates are fresh and the first wrong architectural event is identified on failure."],
+      "escalate_when": ["golden ambiguity", "compiler failure before QEMU", "test requires product-source write", "shared output conflict"]
+    },
+    {
+      "id": "llvm-designer",
+      "title": "LLVM 设计工程师 / Linx LLVM Designer",
+      "job_family": "linxisa-llvm-development",
+      "objective": "Implement assigned Linx backend, MC, codegen, ABI, ELF, or relocation behavior in the pinned LLVM module.",
+      "capabilities": ["code.modify", "llvm.design"],
+      "permissions": {
+        "read": ["isa/**", "docs/architecture/**", "avs/compiler/**", "compiler/llvm/**"],
+        "write": ["compiler/llvm/**"],
+        "tools": ["repo.read", "repo.write", "shell.readonly", "shell.test"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": []
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["assignment", "golden_codec", "abi_contract", "smallest_reproducer"],
+      "outputs": ["llvm_patch", "lit_regression", "compile_gate_evidence", "risk_report"],
+      "definition_of_done": ["Focused lit coverage, integrated Clang evidence, live codec parity, and required linx32/linx64 checks are reported."],
+      "escalate_when": ["ISA or ABI change", "QEMU-owned mismatch", "write outside compiler/llvm", "object contract ambiguity"]
+    },
+    {
+      "id": "llvm-verification-engineer",
+      "title": "LLVM 验证工程师 / Linx LLVM Verification Engineer",
+      "job_family": "linxisa-llvm-verification",
+      "objective": "Independently verify Linx LLVM codec, MC, object, relocation, integrated Clang, and dual-width behavior.",
+      "capabilities": ["evidence.verify", "llvm.verify"],
+      "permissions": {
+        "read": ["isa/**", "docs/architecture/**", "avs/compiler/**", "compiler/llvm/**"],
+        "write": ["avs/compiler/linx-llvm/tests/**", "compiler/llvm/llvm/test/**", "compiler/llvm/clang/test/**"],
+        "tools": ["repo.read", "repo.write", "shell.readonly", "shell.test"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": ["llvm-verdict"]
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["assignment", "candidate_patch", "live_codec", "required_compile_gates"],
+      "outputs": ["llvm_test_patch", "llvm_verification_report", "coverage_report", "proof_boundary"],
+      "definition_of_done": ["Focused and required compiler gates are fresh and object/relocation plus linx32/linx64 proof boundaries are explicit."],
+      "escalate_when": ["golden ambiguity", "runtime-only failure", "test requires non-test product write", "stale toolchain"]
+    },
+    {
+      "id": "superproject-bringup-observer",
+      "title": "Superproject Bring-up 观察员",
+      "job_family": "linxisa-superproject-observability",
+      "objective": "Observe canonical LinxISA flows, stop at the first red hard break, preserve SHA provenance, and route ownership without repairing product code.",
+      "capabilities": ["work.review", "evidence.verify", "bringup.observe"],
+      "permissions": {
+        "read": [".gitmodules", "docs/bringup/**", "tools/bringup/**", "workloads/generated/**", "avs/**", "compiler/**", "emulator/**", "kernel/**", "rtl/**", "tools/**", "lib/**"],
+        "write": [],
+        "tools": ["repo.read", "shell.readonly", "shell.test", "trace.read"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": []
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["bringup_profile", "machine_readable_flow", "agent_run_manifest", "fresh_runner_report"],
+      "outputs": ["first_red_report", "sha_manifest", "gate_provenance", "owner_handoff"],
+      "definition_of_done": ["The first red stage, lane, command, revisions, artifacts, and owning role are reported from machine-readable evidence."],
+      "escalate_when": ["manifest and report disagree", "no owning role", "stale evidence", "dirty or unknown revision"]
+    },
+    {
+      "id": "senior-coder",
+      "title": "LinxISA 高级工程师 / Senior Coder",
+      "job_family": "linxisa-prototype-development",
+      "objective": "Own one bounded LinxISA model, RTL, kernel, library, workload, or harness implementation until a narrower registered domain role exists.",
+      "capabilities": ["code.modify", "delegated.coding.review"],
+      "permissions": {
+        "read": ["**"],
+        "write": ["avs/**", "kernel/**", "rtl/**", "tools/**", "workloads/**", "isa/**", "docs/**", "lib/**"],
+        "tools": ["repo.read", "repo.write", "shell.readonly", "shell.test", "delegate"],
+        "network": false,
+        "delegate_roles": ["specialist-coder"],
+        "approve": []
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["assignment", "bounded_context", "acceptance_criteria"],
+      "outputs": ["patch", "test_results", "delegated_invocations", "risk_report"],
+      "definition_of_done": ["The assigned slice is implemented, independently verifiable, scope-clean, and supported by fresh tests."],
+      "escalate_when": ["scope expansion", "interface change", "missing dedicated role", "same failure twice"]
+    },
+    {
+      "id": "specialist-coder",
+      "title": "LinxISA 专项工程师 / Specialist Coder",
+      "job_family": "linxisa-bounded-development",
+      "objective": "Complete one narrow coding slice from supplied file sections and tools; GPT is default and DeepSeek is optional.",
+      "capabilities": ["code.modify"],
+      "permissions": {
+        "read": ["avs/**", "compiler/**", "emulator/**", "kernel/**", "rtl/**", "tools/**", "workloads/**", "isa/**", "docs/**", "lib/**"],
+        "write": ["avs/**", "compiler/**", "emulator/**", "kernel/**", "rtl/**", "tools/**", "workloads/**", "isa/**", "docs/**", "lib/**"],
+        "tools": ["repo.read", "repo.write", "shell.readonly", "shell.test"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": []
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "deepseek", "fake"]},
+      "inputs": ["bounded_assignment", "selected_context_sections", "acceptance_criteria"],
+      "outputs": ["patch_proposal", "test_results", "risk_report"],
+      "definition_of_done": ["The leaf change stays inside assignment scope and returns fresh focused evidence."],
+      "escalate_when": ["missing context", "scope expansion", "contract ambiguity", "test requires broader authority"]
+    },
+    {
+      "id": "cross-stack-verification-engineer",
+      "title": "LinxISA 跨栈验证工程师 / Cross-stack Verification Engineer",
+      "job_family": "linxisa-system-verification",
+      "objective": "Independently verify model, RTL, kernel, workload, and superproject results that do not belong to the dedicated LLVM or QEMU verification roles.",
+      "capabilities": ["work.review", "evidence.verify", "cross-stack.verify"],
+      "permissions": {
+        "read": ["**"],
+        "write": [],
+        "tools": ["repo.read", "shell.readonly", "shell.test", "trace.read"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": ["cross-stack-verdict"]
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["assignment", "candidate_result", "golden_contracts", "required_gates"],
+      "outputs": ["verification_verdict", "first_divergence", "proof_boundary", "repair_packet"],
+      "definition_of_done": ["The candidate has an independent accept, reject, or escalation verdict with executable repairs on rejection."],
+      "escalate_when": ["interface ambiguity", "missing golden oracle", "ownership conflict", "evidence cannot be reproduced"]
+    },
+    {
+      "id": "harness-auditor",
+      "title": "乱序摸鱼流程审计员 / Harness Auditor",
+      "job_family": "fishtoucher-process-assurance",
+      "objective": "Audit steward takeover, assignment bounds, separation of duties, escalation visibility, and evidence provenance without changing the harness.",
+      "capabilities": ["work.review", "evidence.verify", "harness.audit"],
+      "permissions": {
+        "read": ["AGENTS.md", "README.md", "config/**", "docs/**", "prompts/**", "schemas/**", "src/**", "tests/**", "runs/**"],
+        "write": [],
+        "tools": ["repo.read", "shell.readonly", "shell.test", "trace.read"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": ["harness-verdict"]
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["steward_report", "assignments", "results", "verdicts", "invocation_receipts"],
+      "outputs": ["process_verdict", "missing_escalations", "authority_findings", "repair_packet"],
+      "definition_of_done": ["Every audited task is traceable from human objective through independent verdict without widened authority or hidden escalation."],
+      "escalate_when": ["human authority bypass", "unverifiable provider call", "hidden layer issue", "steward self-approval"]
+    },
+    {
+      "id": "harness-efficiency-engineer",
+      "title": "乱序摸鱼效率工程师 / Harness Efficiency Engineer",
+      "job_family": "fishtoucher-efficiency",
+      "objective": "Reduce context, calls, retries, latency, and merge conflicts after accepted work while preserving every product gate and audit record.",
+      "capabilities": ["code.modify", "harness.optimize"],
+      "permissions": {
+        "read": ["AGENTS.md", "README.md", "config/**", "docs/**", "prompts/**", "schemas/**", "src/**", "tests/**", "runs/**"],
+        "write": ["src/fishtoucher/**", "tests/**", "docs/**", "config/**", "prompts/**", "schemas/**"],
+        "tools": ["repo.read", "repo.write", "shell.readonly", "shell.test", "trace.read"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": []
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["accepted_run", "call_metrics", "conflict_metrics", "audit_findings"],
+      "outputs": ["optimization_patch", "before_after_metrics", "risk_report"],
+      "definition_of_done": ["A measured efficiency improvement passes all protocol tests without weakening gates or evidence."],
+      "escalate_when": ["optimization changes product gate", "metrics are incomparable", "new dependency required", "auditability decreases"]
+    },
+    {
+      "id": "role-skill-curator",
+      "title": "LinxISA 岗位与技能维护员 / Role and Skill Curator",
+      "job_family": "fishtoucher-organization-evolution",
+      "objective": "Add tightly scoped LinxISA Role Cards, prompts, and reusable skill guidance without role-id branches in runtime code.",
+      "capabilities": ["code.modify", "role.evolve"],
+      "permissions": {
+        "read": ["config/**", "prompts/**", "docs/**", "tests/**", "src/**"],
+        "write": ["config/**", "prompts/**", "docs/**", "tests/**"],
+        "tools": ["repo.read", "repo.write", "shell.readonly", "shell.test"],
+        "network": false,
+        "delegate_roles": [],
+        "approve": []
+      },
+      "provider_policy": {"preferred_drivers": ["codex"], "allowed_drivers": ["codex", "fake"]},
+      "inputs": ["role_request", "project_contracts", "accepted_findings"],
+      "outputs": ["role_card", "prompt", "regression_tests", "migration_note"],
+      "definition_of_done": ["The new role loads through configuration and existing roles still validate."],
+      "escalate_when": ["new capability class", "overlapping authority", "runtime branch required"]
     }
   ],
   "gates": [
-    {
-      "id": "contract_integrity",
-      "kind": "policy",
-      "required_evidence": ["interface_versions", "impact_matrix", "human_decision_if_changed"]
-    },
-    {
-      "id": "software_functional",
-      "kind": "executable",
-      "required_evidence": ["elf", "objdump", "trace", "oracle_digest", "test_log"]
-    },
-    {
-      "id": "architecture_correlation",
-      "kind": "executable",
-      "required_evidence": ["functional_diff", "counter_report", "baseline", "causal_explanation"]
-    },
-    {
-      "id": "hardware_unit",
-      "kind": "executable",
-      "required_evidence": ["lint_log", "ut_log", "coverage"]
-    },
-    {
-      "id": "hardware_system",
-      "kind": "executable",
-      "required_evidence": ["it_log", "st_log", "functional_diff", "ca_correlation"]
-    },
-    {
-      "id": "hardware_ppa",
-      "kind": "physical",
-      "required_evidence": ["constraints", "tool_versions", "timing", "area", "power", "congestion"]
-    }
+    {"id": "contract-integrity", "kind": "deterministic"},
+    {"id": "isa-golden-quality", "kind": "hard-break"},
+    {"id": "llvm-contract", "kind": "hard-break"},
+    {"id": "qemu-contract", "kind": "hard-break"},
+    {"id": "isa-cross-stack", "kind": "hard-break"},
+    {"id": "software-bringup", "kind": "hard-break"},
+    {"id": "architecture-correlation", "kind": "hard-break"},
+    {"id": "architecture-compatibility", "kind": "hard-break"},
+    {"id": "architecture-release", "kind": "hard-break"},
+    {"id": "hardware-unit", "kind": "hard-break"},
+    {"id": "hardware-integration", "kind": "hard-break"},
+    {"id": "hardware-compatibility", "kind": "hard-break"},
+    {"id": "hardware-release", "kind": "hard-break"}
   ],
   "loops": [
     {
       "id": "software",
-      "purpose": "Preserve programmability and functional correctness from operators through compiler, ISA, and functional model.",
-      "cadence": "fast",
-      "inputs": ["programming_api", "isa_contract", "abi_contract"],
-      "outputs": ["compiler_patch", "elf", "instruction_trace", "regression_report"],
+      "purpose": "Golden ISA through LLVM, QEMU, cross-stack compatibility, and canonical software bring-up.",
+      "inputs": ["human_objective", "v0.56_golden_isa", "program_contract"],
+      "outputs": ["compiler_evidence", "qemu_evidence", "compatibility_matrix", "software_bringup_report"],
       "stop_policy": "first_red_hard_break",
       "stages": [
-        {
-          "id": "software_contract",
-          "actor": "gpt_architect",
-          "verifier": "deepseek_verifier",
-          "gate": "contract_integrity",
-          "artifacts": ["design", "impact_matrix", "test_plan"]
-        },
-        {
-          "id": "software_implementation",
-          "actor": "deepseek_executor",
-          "verifier": "gpt_verifier",
-          "gate": "software_functional",
-          "artifacts": ["patch", "elf", "objdump", "trace", "regression_report"]
-        }
+        {"id": "software-contract", "actor_role": "steward", "verifier_roles": ["isa-architect", "harness-auditor"], "required_capabilities": ["assignment.issue"], "gate": "contract-integrity", "artifacts": ["task_graph", "impact_matrix", "proof_plan"]},
+        {"id": "isa-golden-review", "actor_role": "isa-architect", "verifier_roles": ["isa-verification-engineer"], "required_capabilities": ["isa.golden.review"], "gate": "isa-golden-quality", "artifacts": ["golden_consistency_report", "encoding_conflict_report", "normative_issue_list"]},
+        {"id": "llvm-design", "actor_role": "llvm-designer", "verifier_roles": ["llvm-verification-engineer"], "required_capabilities": ["llvm.design"], "gate": "llvm-contract", "artifacts": ["llvm_patch", "lit_regression", "dual_width_compile_evidence"]},
+        {"id": "qemu-design", "actor_role": "qemu-designer", "verifier_roles": ["qemu-verification-engineer"], "required_capabilities": ["qemu.design"], "gate": "qemu-contract", "artifacts": ["qemu_patch", "focused_regression", "runtime_evidence"]},
+        {"id": "isa-cross-stack-compatibility", "actor_role": "isa-verification-engineer", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["isa.compatibility.audit"], "gate": "isa-cross-stack", "artifacts": ["compatibility_matrix", "first_mismatch_report", "filed_issue_references"]},
+        {"id": "superproject-bringup-observation", "actor_role": "superproject-bringup-observer", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["bringup.observe"], "gate": "software-bringup", "artifacts": ["first_red_report", "sha_manifest", "owner_handoff"]}
       ]
     },
     {
       "id": "architecture",
-      "purpose": "Prove that an ISA or microarchitecture change has correct, explainable performance value.",
-      "cadence": "medium",
-      "inputs": ["frozen_isa", "functional_trace", "benchmark_manifest"],
-      "outputs": ["ca_model_patch", "counter_report", "performance_decision"],
+      "purpose": "Frozen ISA through functional oracle, cycle-accurate model, and cross-model compatibility.",
+      "inputs": ["frozen_isa", "functional_oracle"],
+      "outputs": ["correlation_evidence", "model_compatibility_report", "architecture_release_record"],
       "stop_policy": "first_red_hard_break",
       "stages": [
-        {
-          "id": "architecture_hypothesis",
-          "actor": "gpt_architect",
-          "verifier": "deepseek_verifier",
-          "gate": "contract_integrity",
-          "artifacts": ["hypothesis", "baseline", "sensitivity_plan"]
-        },
-        {
-          "id": "architecture_model",
-          "actor": "deepseek_executor",
-          "verifier": "gpt_verifier",
-          "gate": "architecture_correlation",
-          "artifacts": ["model_patch", "functional_diff", "counters", "causal_explanation"]
-        }
+        {"id": "architecture-contract", "actor_role": "steward", "verifier_roles": ["isa-architect", "harness-auditor"], "required_capabilities": ["assignment.issue"], "gate": "contract-integrity", "artifacts": ["hypothesis", "baseline", "sensitivity_plan"]},
+        {"id": "architecture-model", "actor_role": "senior-coder", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["code.modify"], "gate": "architecture-correlation", "artifacts": ["model_patch", "differential", "counter_report"]},
+        {"id": "architecture-model-compatibility", "actor_role": "isa-verification-engineer", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["isa.compatibility.audit"], "gate": "architecture-compatibility", "artifacts": ["model_compatibility_matrix", "first_mismatch_report", "ownership_route"]},
+        {"id": "architecture-bringup-observation", "actor_role": "superproject-bringup-observer", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["bringup.observe"], "gate": "architecture-release", "artifacts": ["sha_manifest", "first_red_report", "architecture_release_report"]}
       ]
     },
     {
       "id": "hardware",
-      "purpose": "Converge RTL correctness, model correlation, and physically grounded PPA.",
-      "cadence": "slow",
-      "inputs": ["microarchitecture_contract", "functional_oracle", "ca_model"],
-      "outputs": ["rtl_patch", "ut_it_st_reports", "correlation_report", "ppa_report"],
+      "purpose": "Microarchitecture and RTL through unit, integration, cross-stack compatibility, and release evidence.",
+      "inputs": ["microarchitecture_contract", "frozen_isa", "functional_oracle"],
+      "outputs": ["rtl_evidence", "hardware_compatibility_report", "hardware_release_record"],
       "stop_policy": "first_red_hard_break",
       "stages": [
-        {
-          "id": "hardware_contract",
-          "actor": "gpt_architect",
-          "verifier": "deepseek_verifier",
-          "gate": "contract_integrity",
-          "artifacts": ["microarchitecture_spec", "interface_table", "verification_plan"]
-        },
-        {
-          "id": "hardware_unit_implementation",
-          "actor": "deepseek_executor",
-          "verifier": "gpt_verifier",
-          "gate": "hardware_unit",
-          "artifacts": ["rtl_patch", "lint_log", "ut_log", "coverage"]
-        },
-        {
-          "id": "hardware_system_correlation",
-          "actor": "deepseek_executor",
-          "verifier": "gpt_verifier",
-          "gate": "hardware_system",
-          "artifacts": ["it_log", "st_log", "functional_diff", "ca_correlation"]
-        },
-        {
-          "id": "hardware_physical_feedback",
-          "actor": "deepseek_executor",
-          "verifier": "gpt_verifier",
-          "gate": "hardware_ppa",
-          "artifacts": ["constraints", "timing", "area", "power", "congestion"]
-        }
+        {"id": "hardware-contract", "actor_role": "steward", "verifier_roles": ["isa-architect", "harness-auditor"], "required_capabilities": ["assignment.issue"], "gate": "contract-integrity", "artifacts": ["microarchitecture_spec", "interface_table", "verification_plan"]},
+        {"id": "hardware-unit-implementation", "actor_role": "senior-coder", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["code.modify"], "gate": "hardware-unit", "artifacts": ["rtl_patch", "unit_report"]},
+        {"id": "hardware-system-integration", "actor_role": "senior-coder", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["code.modify"], "gate": "hardware-integration", "artifacts": ["integrated_patch", "system_report", "correlation"]},
+        {"id": "hardware-cross-stack-compatibility", "actor_role": "isa-verification-engineer", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["isa.compatibility.audit"], "gate": "hardware-compatibility", "artifacts": ["hardware_compatibility_matrix", "first_mismatch_report", "ownership_route"]},
+        {"id": "hardware-bringup-observation", "actor_role": "superproject-bringup-observer", "verifier_roles": ["cross-stack-verification-engineer"], "required_capabilities": ["bringup.observe"], "gate": "hardware-release", "artifacts": ["sha_manifest", "first_red_report", "hardware_release_report"]}
       ]
     }
   ],
   "budgets": {
-    "verification_reserve_percent": 25,
-    "max_attempts_per_packet": 2,
-    "max_write_modules": 3,
-    "repeat_failure_action": "escalate_to_human"
+    "max_context_sections": 6,
+    "max_context_bytes": 24576,
+    "max_delegated_calls": 2,
+    "max_parallel_agents": 3,
+    "max_depth": 2
   },
   "anti_cheat": {
-    "protected_paths": [
-      "canonical_gate_definitions",
-      "reference_outputs",
-      "active_waivers"
-    ],
-    "forbidden_changes": [
-      "delete_failing_test",
-      "weaken_oracle",
-      "swallow_exit_status",
-      "shrink_required_suite",
-      "print_only_pass"
-    ]
+    "forbidden_changes": ["delete_failing_test", "weaken_oracle", "swallow_exit_status", "shrink_required_suite", "print_only_pass"]
   }
 }

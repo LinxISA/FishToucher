@@ -1,86 +1,66 @@
-# FishToucher 摸鱼
+# 乱序摸鱼（FishToucher）
 
-**An evidence-first multi-agent harness standard for LinxISA NPU development.**
+**乱序摸鱼**是 FishToucher 仓库的中文名。它是一个面向 LinxISA NPU 大型系统开发的多 Agent harness 原型：描述岗位、权限、交付、验证、升级和人类决策点，但当前不直接启动 Agent 或调用付费模型。
 
-FishToucher coordinates GPT and DeepSeek agents across three independently paced engineering loops:
+它协调三条独立推进的循环：
 
-- **Software:** programming framework → compiler → ISA → functional model
-- **Architecture:** ISA → functional model → cycle-accurate model
-- **Hardware:** microarchitecture/RTL → UT/IT/ST → synthesis and P&R
+- 软件：编程框架 → LLVM → ISA/ABI → QEMU/功能模型 → Linux/workloads
+- 架构：冻结 ISA → 功能金模 → cycle-accurate model → 相关性证据
+- 硬件：微架构/RTL → UT/IT/ST → model/RTL 相关性 → 发布证据
 
-The name is playful; the contract is not. Agents can propose, implement, test, and review. Only validators can derive gate status, and only a human can freeze cross-repository interfaces, approve waivers, resolve model conflicts, or promote a release.
-
-## Why FishToucher?
-
-A capable agent can write code quickly and still “finish” by weakening a test, changing a reference output, swallowing an exit code, or reporting a stale green run. FishToucher treats this as a systems problem:
+正常通信只有三条记录：
 
 ```text
-propose → authorize → execute → collect evidence → verify → promote or escalate
+assignment → result → verdict
 ```
 
-It binds each task to exact repository revisions, write scopes, gates, budgets, artifacts, and an independent verifier. Markdown summaries are views; fresh machine-readable reports are truth.
+## 管家入口
 
-## Quick start
+人类只与 `steward`（管家）对话。管家负责接管现场、拆任务、spawn、监督、路由每层问题，并生成完整工程报告；接口冻结、waiver、模型冲突和发布仍由人类决定。
 
-FishToucher currently ships the v1alpha1 standard, an executable validator, a deterministic plan renderer, LinxISA examples, and role prompts. It does not call provider APIs or mutate LinxISA by itself.
+在新的 Codex task 中打开 [`prompts/steward.md`](prompts/steward.md)。新管家必须先完成 takeover 清单并输出第一份全量报告，之后才能 spawn：
+
+```text
+已接管“乱序摸鱼”管家角色。
+```
+
+## LinxISA 岗位
+
+- `isa-architect`：看护 v0.56 golden ISA 的自洽性、语义与编码空间。
+- `isa-verification-engineer`：ISA/LLVM/QEMU/model 兼容性交通警察；在授权时提交可复现 issue。
+- `llvm-designer` / `llvm-verification-engineer`：LLVM 实现与独立验证。
+- `qemu-designer` / `qemu-verification-engineer`：QEMU 实现与独立验证。
+- `superproject-bringup-observer`：只读观察 canonical flow、SHA 和 first red hard break。
+- `senior-coder` / `specialist-coder`：尚无专岗时的 LinxISA GPT 实现岗；专项岗可选 DeepSeek driver。
+- `cross-stack-verification-engineer`：验证 model、RTL、kernel、workload 和集成结果。
+- `harness-auditor` / `harness-efficiency-engineer`：审计流程与度量优化。
+- `role-skill-curator`：按配置扩展新的 LinxISA 岗位和技能，不在 runtime 写 role-id 分支。
+
+规范 Role Card 位于 [`config/linxisa.example.json`](config/linxisa.example.json)。每个岗位都声明目标、修改范围、工具/网络/委派权限、输入、结果、完成条件和升级条件。
+
+## Provider 边界
+
+岗位与模型 provider 分离：
+
+- `codex` 是默认且已启用的 GPT driver。
+- `deepseek` 是默认关闭的可选外部 driver，只用于明确授权的 `specialist-coder` 任务。
+- `fake` 是确定性的测试替身。
+
+Codex 原生 subagent 可以使用项目级 custom agent 和权限继承，但没有可移植的“每次 spawn 任意切换 provider”字段。DeepSeek 因而通过独立 driver 实现同一生命周期：`start → follow_up → wait → cancel`。详见[协议调研与取舍](docs/protocol-research.md)。
+
+## 验证
 
 ```bash
-git clone https://github.com/LinxISA/FishToucher.git
-cd FishToucher
-
 PYTHONPATH=src python3 -m fishtoucher.cli validate config/linxisa.example.json
 PYTHONPATH=src python3 -m fishtoucher.cli plan config/linxisa.example.json
+PYTHONPATH=src python3 -m fishtoucher.cli role config/linxisa.example.json steward
+PYTHONPATH=src python3 -m fishtoucher.cli route config/linxisa.example.json isa-verification-engineer
 PYTHONPATH=src python3 -m fishtoucher.cli evidence examples/evidence.pass.json
-PYTHONPATH=src python3 -m fishtoucher.cli mailbox examples/runs/software-loop-001/mailbox.jsonl
-PYTHONPATH=src python3 -m fishtoucher.cli invocation examples/runs/software-loop-002/invocation-002.json
+PYTHONPATH=src python3 -m fishtoucher.cli invocation examples/invocation.pass.json
+PYTHONPATH=src python3 -m fishtoucher.cli mailbox examples/runs/harness-loop-001/mailbox.jsonl
 python3 -m unittest discover -s tests -v
 ```
 
-Expected plan:
+这些是 harness contract tests：验证岗位注册、takeover prompt、权限边界、消息、driver 路由和三循环拓扑。它们不会 spawn Agent、调用 provider、提交 issue 或运行 LinxISA 性能测试。原型阶段保留这类测试是必要的，因为它们防止岗位扩展时静默放宽权限或破坏接管协议。
 
-```text
-[software] ...
-  1. software_contract: gpt_architect -> contract_integrity -> deepseek_verifier
-  2. software_implementation: deepseek_executor -> software_functional -> gpt_verifier
-
-[architecture] ...
-[hardware] ...
-```
-
-## Core contracts
-
-1. **Human authority is explicit.** Agents do not make architecture freezes, waivers, release decisions, or PPA claims.
-2. **GPT and DeepSeek have different default lanes.** GPT handles architecture, decomposition, cross-layer diagnosis, and independent review. DeepSeek handles bounded implementation, tests, regressions, and mechanical work.
-3. **The implementer never self-verifies.** High-value stages use a verifier from the other provider.
-4. **The first red hard break owns the lane.** Downstream work stops; timeout, crash, skipped, and missing evidence are not pass.
-5. **Evidence is replayable.** A gate record includes command, working directory, time, status, artifact hashes, SHA manifest, dirty state, and agent/prompt identity. Online provider calls add a versioned receipt that hash-binds the authorized packet to the exact request and response byte streams.
-6. **LinxISA remains authoritative.** FishToucher consumes its canonical manifests and runners; it does not duplicate ISA truth or invent alternate source trees.
-7. **Cross-loop changes invalidate dependent evidence.** ISA, ABI, ELF, trace, benchmark, counter, or microarchitecture contract changes require an impact matrix and human decision.
-
-## LinxISA profile
-
-The example profile reads these canonical inputs from the LinxISA superproject:
-
-- `docs/bringup/agent_runs/manifest.yaml`
-- `docs/bringup/agent_runs/waivers.yaml`
-- `docs/bringup/benchmark_qemu_linux_flow.json`
-- `docs/bringup/ai_workload_bringup_flow.json`
-
-FishToucher must preserve LinxISA’s profile-aware hard-break order. The included current-state fixture records the routing distinction on 2026-07-15: the strict PR lane first stops at the TSVC QEMU timeout; the BusyBox `finish_task_switch` / `FRET.ST` regression remains real but is off that PR stop path. The fixture is not closure evidence and must be replaced by a fresh runner report before use.
-
-## Documentation
-
-- [Normative standard](docs/standard.md)
-- [Architecture and data flow](docs/architecture.md)
-- [Agent communication SOP](docs/agent-communication-sop.md)
-- [LinxISA integration profile](docs/linxisa-profile.md)
-- [Threat model](docs/threat-model.md)
-- [Contributing](CONTRIBUTING.md)
-
-## Status
-
-`v1alpha1` defines and validates flow, evidence, invocation-receipt, agent-message, and mailbox contracts. The [first software-loop iteration](examples/runs/software-loop-001/) demonstrates the durable handoff protocol with a simulated executor provider. The [second iteration](examples/runs/software-loop-002/) uses a paid DeepSeek V4 Pro executor behind a Codex coordinator, preserves a rejected first result, and closes on an independently accepted repair with two hash-bound invocation receipts. FishToucher still does not ship credentials or a provider adapter, and unsigned receipts do not prove remote identity. Worktree isolation and coordinator-owned append-only storage remain future work; the repository does not claim that an NPU, RTL closure, or tapeout has been completed.
-
-## License
-
-Apache-2.0. See [LICENSE](LICENSE).
+参见[规范](docs/standard.md)、[管家 SOP](docs/steward-sop.md)、[岗位表](docs/roles.md)、[架构](docs/architecture.md)、[通信 SOP](docs/agent-communication-sop.md)和[效率策略](docs/harness-optimization.md)。

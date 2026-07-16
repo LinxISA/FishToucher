@@ -4,7 +4,12 @@ FishToucher is an external orchestrator. It does not add a random top-level fold
 
 ## Canonical inputs
 
-The profile imports LinxISA’s owner manifest, waivers, gate registry, benchmark hard-break flow, and AI workload flow. If those files change, FishToucher invalidates the compiled plan.
+The profile imports LinxISA’s owner manifest, waivers, gate registry, benchmark hard-break flow, and AI workload flow. If those files change, FishToucher invalidates the compiled plan. The Superproject Bring-up Observer starts from:
+
+- `docs/bringup/BENCHMARK_QEMU_LINUX_FLOW.md`;
+- `docs/bringup/benchmark_qemu_linux_flow.json`;
+- `tools/bringup/run_benchmark_linux_flow.py`;
+- `docs/bringup/agent_runs/manifest.yaml`.
 
 ## Hard-break behavior
 
@@ -23,11 +28,11 @@ source-contract
 
 The runner’s current JSON, not this prose, defines the exact profile-specific order. FishToucher stops at the first red stage in the same lane and profile.
 
-As of 2026-07-15, the strict PR lane reaches a TSVC QEMU runtime timeout. A separate BusyBox full-OS regression remains localized around `finish_task_switch` / `FRET.ST` but is off that PR stop path. FishToucher records both without allowing the downstream issue to replace the first hard break.
+The profile never embeds a "current blocker" snapshot. During takeover, the steward reads a fresh machine-readable runner report, records its exact revision and timestamp, and then selects the first red stage. `examples/linxisa-routing-example.json` demonstrates routing only and is never evidence.
 
 ## Ownership and changes
 
-Ordinary packets write at most three modules. A leaf defect is fixed, tested, and landed in the leaf repository first. Integration then updates only the intended gitlink and reruns cross-repository closure. The superproject must not hide leaf changes or unrelated repins.
+Ordinary assignments write at most three modules. A leaf defect is fixed, tested, and landed in the leaf repository first. Integration then updates only the intended gitlink and reruns cross-repository closure. The superproject must not hide leaf changes or unrelated repins.
 
 Parallel agents need disjoint modules and output directories. In particular, QEMU/AVS jobs must not share mutable build outputs.
 

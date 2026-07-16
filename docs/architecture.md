@@ -1,61 +1,64 @@
 # Architecture
 
-FishToucher separates nondeterministic reasoning from deterministic control. Agents propose patches and interpretations; the coordinator validates scope, executes locked commands, hashes artifacts, and computes gate status.
+FishToucher separates human authority, steward orchestration, LinxISA domain delivery, independent proof, and canonical superproject evidence.
 
 ```mermaid
 flowchart TB
-    H["Human SE<br/>interfaces · waivers · promotion"]
-    C["FishToucher coordinator<br/>policy · state · budgets · locks"]
-    G["GPT pool<br/>architecture · planning · diagnosis · review"]
-    D["DeepSeek pool<br/>bounded implementation · tests · regressions"]
-    V["Independent gate engine<br/>commands · hashes · verdicts"]
-    L["LinxISA canonical repos and runners"]
-    E["Append-only evidence packets"]
-
-    H --> C
-    C --> G
-    C --> D
-    G --> C
-    D --> C
-    C --> L
-    L --> V
-    V --> E
-    E --> C
-    C --> H
+    H["Human System Engineer"] <--> S["管家 / Steward"]
+    S --> IA["ISA Architect"]
+    S --> IV["ISA Compatibility Traffic Controller"]
+    S --> LD["LLVM Designer"]
+    S --> LV["LLVM Verification"]
+    S --> QD["QEMU Designer"]
+    S --> QV["QEMU Verification"]
+    S --> SC["LinxISA Senior / Specialist Coder"]
+    S --> BO["Superproject Bring-up Observer"]
+    S --> XA["Cross-stack Verification"]
+    S --> HA["Harness Audit / Efficiency / Role Evolution"]
+    L["LinxISA golden · code · manifests · runners"]
+    IA --> L
+    IV --> L
+    LD --> L
+    LV --> L
+    QD --> L
+    QV --> L
+    SC --> L
+    L --> BO
+    L --> XA
+    BO --> S
+    XA --> S
+    HA --> S
 ```
 
-## Two nested feedback structures
+The steward is the sole routine human-facing coordinator. It preserves every layer's provenance and reports without relabeling a downstream symptom as an upstream cause. It may spawn registered roles; it may not implement silently, approve its own work, or take human-only decisions.
 
-FishToucher uses two different kinds of loop:
+## Borrowed protocol ideas
 
-1. The **task control loop** authorizes one action, observes the environment, verifies evidence, and retries or escalates.
-2. The **engineering loops** let software, architecture, and hardware progress at different cadences behind versioned interfaces.
+FishToucher uses a small local subset of established systems:
 
-```mermaid
-flowchart LR
-    subgraph SW["Software · fast"]
-      SW1["Framework / operators"] --> SW2["Compiler"] --> SW3["ISA + functional model"]
-    end
-    subgraph AR["Architecture · medium"]
-      AR1["ISA + functional oracle"] --> AR2["CA model"] --> AR3["Counters + causal performance"]
-    end
-    subgraph HW["Hardware · slow"]
-      HW1["RTL"] --> HW2["UT / IT / ST"] --> HW3["Correlation + PPA"]
-    end
-    SW3 -- "versioned ISA / ABI / ELF / trace" --> AR1
-    AR3 -- "microarchitecture + counter contract" --> HW1
-    HW3 -- "timing / power / area feedback" --> AR2
-    AR1 -- "functional oracle" --> HW2
+- A2A: capability cards, stateful tasks, messages, artifacts, and references.
+- AutoGen Core: a runtime owns agent lifecycle and message delivery.
+- OpenAI Agents SDK: explicit handoffs and trace spans.
+- LangGraph: supervisor routing and bounded handoff semantics.
+- Codex native subagents: custom agents, model/reasoning configuration, permission inheritance, and bounded nesting.
+
+It does not implement an A2A server, adopt open-ended group chat, or add those frameworks as dependencies. The local protocol remains `assignment → result → verdict`, with exceptional `escalation`. See [`protocol-research.md`](protocol-research.md) for sources and decisions.
+
+## Registry and driver boundary
+
+`config/linxisa.example.json` is the organization registry. Runtime validation checks capabilities and permissions, not known role ids. Effective authority is always:
+
+```text
+Role Card ∩ assignment ∩ runtime sandbox
 ```
 
-## Deterministic plan, nondeterministic workers
+Codex native agents, Codex SDK, or Codex MCP may implement the `codex` driver. DeepSeek remains a separate optional driver because the portable native spawn surface does not expose an arbitrary per-call provider selector. Both lanes implement:
 
-A flow document compiles into an ordered plan. Ready work sorts by priority and packet ID. Concurrency is permitted only for disjoint write scopes and output directories. Provider output is never used as a gate result.
+```text
+start(authorized assignment) → handle
+follow_up(handle, bounded repair)
+wait(handle) → result
+cancel(handle)
+```
 
-Online adapters implement a provider-neutral request/result protocol and load exact GPT and DeepSeek model names from deployment configuration. Every call produces a `fishtoucher.invocation/v1` receipt with separate executor, transport, and coordinator identities plus request/response hashes, time bounds, status, and exit code. Credentials and raw prompt/response content must never enter flow documents, plans, mailboxes, or committed evidence.
-
-The recorded `software-loop-002` uses an external Keychain-backed adapter. A Codex coordinator gathers bounded local context and applies the returned patch, while DeepSeek V4 Pro remains the recorded implementation author. This separation gives DeepSeek no implicit filesystem or tool authority.
-
-## Persistence
-
-Runtime state should live outside the LinxISA checkout or in an explicitly approved location. LinxISA-generated workload artifacts remain under `workloads/generated/<run-id>/`. Each attempt gets a content-addressed evidence packet; failed attempts remain available for replay and audit.
+Mailboxes keep compact contracts, not transcripts. Raw provider request/response logs are create-once mode-`0600` records outside source. LinxISA workload artifacts remain under `workloads/generated/<run-id>/`.

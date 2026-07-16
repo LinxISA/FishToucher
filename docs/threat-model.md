@@ -24,11 +24,11 @@ FishToucher assumes agents are capable, helpful, fallible, context-limited, and 
 
 ## Controls
 
-- deny-by-default permissions and at most three write modules;
+- Role Card, assignment, and runtime permission intersection, with at most three write modules per ordinary assignment;
 - protected paths and separate contract-change packets;
 - argv-based locked commands and independent result parsing;
 - content-addressed artifacts and append-only attempts;
-- cross-provider verification for promotion-critical work;
+- independent named review and test roles for promotion-critical work;
 - fresh SHA manifests, environment fingerprints, seeds, and tool versions;
 - deterministic hard-break scheduling and resource locks;
 - explicit human decisions for interfaces, waivers, conflicts, releases, and PPA.

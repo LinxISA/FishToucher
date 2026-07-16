@@ -1,0 +1,22 @@
+{
+  "example_only": true,
+  "profile": "pr",
+  "lane": "pin",
+  "source": "replace with a fresh machine-readable runner report before takeover",
+  "hard_breaks": [
+    {"id": "source-contract", "status": "pass"},
+    {"id": "compiler-contract", "status": "pass"},
+    {
+      "id": "qemu-contract",
+      "status": "fail",
+      "classification": "example-emulator-runtime",
+      "stops_pr_lane": true
+    },
+    {
+      "id": "linux-userspace-entry",
+      "status": "skipped",
+      "reason": "downstream of the example first red hard break"
+    }
+  ],
+  "warning": "Routing example only. It has no revision, timestamp, commands, or artifacts and is never closure evidence."
+}

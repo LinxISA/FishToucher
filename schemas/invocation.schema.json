@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://linx-isa.github.io/FishToucher/schemas/invocation.schema.json",
+  "title": "FishToucher Prototype Invocation Receipt",
+  "type": "object",
+  "required": ["contract", "kind", "invocation_id", "run_id", "assignment_id", "actor", "driver", "request_log", "response_log", "request_sha256", "response_sha256", "started_at", "ended_at", "status", "exit_code", "usage", "tool_actions"],
+  "properties": {
+    "contract": {"const": "fishtoucher.prototype"}, "kind": {"const": "invocation"},
+    "invocation_id": {"type": "string"}, "run_id": {"type": "string"}, "assignment_id": {"type": "string"},
+    "actor": {"type": "object"}, "driver": {"type": "object"}, "request_log": {"type": "string"}, "response_log": {"type": "string"},
+    "request_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "response_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "started_at": {"type": "string", "format": "date-time"}, "ended_at": {"type": "string", "format": "date-time"},
+    "status": {"enum": ["success", "failure", "interrupted"]}, "exit_code": {"type": "integer"},
+    "usage": {"type": "object"}, "tool_actions": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

@@ -1,18 +1,22 @@
 # Contributing
 
-Open changes against `main`. Keep each change focused on one contract, validator, integration profile, or documentation concern.
+FishToucher is still a prototype. Breaking cleanup is preferred over compatibility code.
+
+1. Start from `docs/standard.md` and the Role Cards in `config/linxisa.example.json`.
+2. Add regression tests before behavior-preserving cleanup.
+3. Keep roles and providers independent; provider-specific behavior belongs behind a driver.
+4. Do not add dependencies without explicit approval.
+5. Do not persist credentials, full secrets, or raw provider content in committed fixtures.
+6. Preserve independent review, scope intersection, hard-break ordering, and evidence honesty.
+7. Prove a new role can load without changes to the runtime validator.
 
 Before submitting:
 
 ```bash
-PYTHONPATH=src python3 -m fishtoucher.cli validate config/linxisa.example.json
-PYTHONPATH=src python3 -m fishtoucher.cli evidence examples/evidence.pass.json
-PYTHONPATH=src python3 -m fishtoucher.cli mailbox examples/runs/software-loop-001/mailbox.jsonl
-PYTHONPATH=src python3 -m fishtoucher.cli mailbox examples/runs/software-loop-002/mailbox.jsonl
-PYTHONPATH=src python3 -m fishtoucher.cli invocation examples/runs/software-loop-002/invocation-002.json
 python3 -m unittest discover -s tests -v
+PYTHONPATH=src python3 -m fishtoucher.cli validate config/linxisa.example.json
+PYTHONPATH=src python3 -m fishtoucher.cli mailbox examples/runs/harness-loop-001/mailbox.jsonl
+PYTHONPATH=src python3 -m fishtoucher.cli evidence examples/evidence.pass.json
 ```
 
-Changes to schemas, gate semantics, anti-cheat rules, or human authority require a rationale, compatibility impact, and adversarial test. Provider-specific code must remain behind a model-neutral adapter and must not persist credentials.
-
-Commit messages follow the Lore protocol: lead with intent, explain constraints and rejected alternatives, and include `Tested:` and honest `Not-tested:` trailers.
+Use the LinxISA Lore Commit Protocol and report verification gaps honestly.
